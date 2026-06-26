@@ -1,14 +1,38 @@
 # convex/
 
-Backend lives here — **not built yet** (by design; V1 starts as a placeholder UI).
+The thanksbut.lol backend. Schema + functions are written; they just need a
+deployment to come alive.
 
-When the backend begins:
+## One-time setup
 
-1. Run `npx convex dev` — creates the deployment, writes `convex/_generated/`,
-   and prints `NEXT_PUBLIC_CONVEX_URL` + `CONVEX_DEPLOYMENT` for `.env.local`.
-2. Add `schema.ts` defining the `archives` table (map it onto
-   [`types/archive.ts`](../types/archive.ts)).
-3. Add query/mutation functions (list archives, submit, react).
+```bash
+npx convex dev
+```
 
-The `Providers` component already wires `ConvexProvider` automatically once
-`NEXT_PUBLIC_CONVEX_URL` is set.
+This authenticates, provisions a dev deployment, writes `convex/_generated/`
+(the typed client), and adds `NEXT_PUBLIC_CONVEX_URL` + `CONVEX_DEPLOYMENT` to
+`.env.local`. The `Providers` component wires `ConvexProvider` automatically
+once the URL is set. Then seed sample data:
+
+```bash
+npx convex run seed:run
+```
+
+## Layout
+
+- `schema.ts` — `archives`, `reactions`, `reports` tables + indexes
+  (`by_status`, `by_category` for newest-first/filtered feeds).
+- `archives.ts` — `list` (paginated + category), `getById`, `stats`, `create`.
+- `reactions.ts` — `toggle` (one 🥲 per identity).
+- `reports.ts` — `create` (spam / pii / harassment / other).
+- `seed.ts` — sample archives (`seed:run`).
+- `lib/` — `serialize` (Doc → API shape) and `identity` (anonymous visitor now,
+  account-ready later).
+
+## Frontend coupling
+
+The frontend references these functions by name via
+[`lib/convex-api.ts`](../lib/convex-api.ts) (typed `makeFunctionReference`),
+**not** `_generated/api` — so the app typechecks and builds before a deployment
+exists. Data hooks live in [`hooks/`](../hooks). Shared validation is in
+[`lib/validation.ts`](../lib/validation.ts) (used by both sides).

@@ -1,0 +1,108 @@
+import { paginationOptsValidator } from "convex/server";
+import { v } from "convex/values";
+
+import { mutation, query, type QueryCtx } from "./_generated/server";
+import type { Id } from "./_generated/dataModel";
+import { categoryValidator, imageValidator } from "./schema";
+import { serializeArchive } from "./lib/serialize";
+import { resolveIdentity } from "./lib/identity";
+import { archiveInputSchema } from "../lib/validation";
+
+/** Has this caller reacted to the given archive? */
+async function hasReacted(
+  ctx: QueryCtx,
+  archiveId: Id<"archives">,
+  visitorId: string | undefined,
+): Promise<boolean> {
+  if (!visitorId) return false;
+  const identity = await resolveIdentity(ctx, visitorId);
+  const existing = await ctx.db
+    .query("reactions")
+    .withIndex("by_archive_identity", (q) =>
+      q.eq("archiveId", archiveId).eq("identity", identity),
+    )
+    .unique();
+  return existing !== null;
+}
+
+/** Paginated wall, newest-first, optionally filtered by category. */
+export const list = query({
+  args: {
+    paginationOpts: paginationOptsValidator,
+    category: v.optional(categoryValidator),
+    visitorId: v.optional(v.string()),
+  },
+  handler: async (ctx, { paginationOpts, category, visitorId }) => {
+    const archivesQuery = category
+      ? ctx.db
+          .query("archives")
+          .withIndex("by_category", (q) =>
+            q.eq("status", "visible").eq("category", category),
+          )
+      : ctx.db
+          .query("archives")
+          .withIndex("by_status", (q) => q.eq("status", "visible"));
+
+    const result = await archivesQuery.order("desc").paginate(paginationOpts);
+
+    const page = await Promise.all(
+      result.page.map(async (doc) =>
+        serializeArchive(doc, await hasReacted(ctx, doc._id, visitorId)),
+      ),
+    );
+
+    return { ...result, page };
+  },
+});
+
+/** Single archive by id (or null if missing/removed). */
+export const getById = query({
+  args: { id: v.id("archives"), visitorId: v.optional(v.string()) },
+  handler: async (ctx, { id, visitorId }) => {
+    const doc = await ctx.db.get(id);
+    if (!doc || doc.status !== "visible") return null;
+    return serializeArchive(doc, await hasReacted(ctx, id, visitorId));
+  },
+});
+
+/**
+ * Total visible archive count for the hero stat.
+ * NOTE: collects the table — fine at small scale. Replace with a maintained
+ * counter document if the archive ever grows large.
+ */
+export const stats = query({
+  args: {},
+  handler: async (ctx) => {
+    const visible = await ctx.db
+      .query("archives")
+      .withIndex("by_status", (q) => q.eq("status", "visible"))
+      .collect();
+    return { total: visible.length };
+  },
+});
+
+/** Create a new archive (post-upload). Returns its id + secret manage token. */
+export const create = mutation({
+  args: {
+    category: categoryValidator,
+    image: v.optional(imageValidator),
+    text: v.optional(v.string()),
+    company: v.optional(v.string()),
+    caption: v.optional(v.string()),
+    displayName: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    // Shared business validation (image-or-text, lengths) — same rules as the client.
+    const input = archiveInputSchema.parse(args);
+    const manageToken = crypto.randomUUID();
+
+    const id = await ctx.db.insert("archives", {
+      ...input,
+      reactions: 0,
+      status: "visible",
+      manageToken,
+    });
+
+    return { id, manageToken };
+  },
+});

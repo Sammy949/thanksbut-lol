@@ -9,6 +9,8 @@
  * built yet; when it is, the persisted document should map onto this type.
  */
 
+import type { UploadPayload } from "./upload";
+
 /** Category of the thing the person was rejected from. */
 export type ArchiveCategory =
   | "job"
@@ -48,3 +50,47 @@ export interface Archive {
    */
   visitorId?: string;
 }
+
+/** Alias used by the UI/forms when "category" reads more naturally. */
+export type Category = ArchiveCategory;
+
+/** Persisted image shape (UploadThing metadata). */
+export type ArchiveImage = UploadPayload;
+
+/**
+ * Shape returned by the Convex `archives.list` / `getById` queries to the UI.
+ * Distinct from the legacy display `Archive` (string image) used by the current
+ * mock — the presentation layer maps this once the redesign is wired.
+ */
+export interface ArchiveResponse {
+  id: string;
+  category: ArchiveCategory;
+  image?: ArchiveImage;
+  text?: string;
+  company?: string;
+  caption?: string;
+  displayName?: string;
+  stamp?: ArchiveStamp;
+  reactions: number;
+  /** Whether the current visitor has reacted (resolved per-request). */
+  reacted: boolean;
+  /** Creation time in epoch ms. */
+  createdAt: number;
+}
+
+/** One page of archives from a paginated query. */
+export interface ArchivePage {
+  page: ArchiveResponse[];
+  isDone: boolean;
+  continueCursor: string;
+}
+
+/** Input accepted by the create-archive mutation (post-upload, no File). */
+export type ArchiveInput = {
+  category: ArchiveCategory;
+  image?: ArchiveImage;
+  text?: string;
+  company?: string;
+  caption?: string;
+  displayName?: string;
+};
