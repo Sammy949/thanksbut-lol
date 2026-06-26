@@ -4,6 +4,7 @@ import { type ReactNode } from "react";
 import { ThemeProvider } from "next-themes";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SubmissionProvider } from "@/components/upload/submission-provider";
 
 /**
@@ -22,7 +23,9 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      <SubmissionProvider>{children}</SubmissionProvider>
+      <TooltipProvider delayDuration={200}>
+        <SubmissionProvider>{children}</SubmissionProvider>
+      </TooltipProvider>
     </ThemeProvider>
   );
 

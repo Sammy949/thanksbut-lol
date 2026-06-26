@@ -46,15 +46,15 @@ export function ErrorState({ reset }: { reset?: () => void }) {
 
       <div className="border-gallery-gray mt-4 grid w-full max-w-md grid-cols-2 gap-4 border-t pt-6">
         <div className="flex flex-col gap-1">
-          <span className="text-label-caps text-muted-type font-mono uppercase">
+          <span className="text-label-caps text-muted-type font-body uppercase">
             Status
           </span>
-          <span className="text-meta-data text-on-surface-variant font-mono">
+          <span className="text-meta-data text-on-surface-variant font-body">
             503 Service Unavailable
           </span>
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-label-caps text-muted-type font-mono uppercase">
+          <span className="text-label-caps text-muted-type font-body uppercase">
             Timestamp
           </span>
           <span

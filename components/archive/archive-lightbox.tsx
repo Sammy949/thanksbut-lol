@@ -4,7 +4,7 @@ import Image from "next/image";
 import { Flag } from "lucide-react";
 
 import { formatRelativeTime } from "@/lib/format";
-import { CATEGORIES } from "@/constants/categories";
+import { CATEGORY_LABELS } from "@/constants/categories";
 import type { Archive } from "@/types/archive";
 import {
   Dialog,
@@ -14,10 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { StampMark } from "@/components/archive/stamp-mark";
-
-const CATEGORY_LABEL = Object.fromEntries(
-  CATEGORIES.map((c) => [c.value, c.label]),
-) as Record<Archive["category"], string>;
 
 interface ArchiveLightboxProps {
   archive: Archive | null;
@@ -40,7 +36,7 @@ export function ArchiveLightbox({
           <div className="flex flex-col gap-4">
             <div className="flex items-start justify-between gap-3 pr-8">
               <DialogTitle>{archive.company ?? "Anonymous"}</DialogTitle>
-              <Badge variant="outline">{CATEGORY_LABEL[archive.category]}</Badge>
+              <Badge variant="outline">{CATEGORY_LABELS[archive.category]}</Badge>
             </div>
 
             {archive.image ? (

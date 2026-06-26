@@ -19,7 +19,7 @@ export function SiteFooter() {
           <span className="text-headline-md text-on-surface font-display">
             {SITE.name}
           </span>
-          <span className="text-meta-data text-muted-type font-mono uppercase">
+          <span className="text-meta-data text-muted-type font-body uppercase">
             © 2026 {SITE.name} — Archival Collection
           </span>
         </div>
@@ -29,7 +29,7 @@ export function SiteFooter() {
             <a
               key={link.label}
               href={link.href}
-              className="text-meta-data text-muted-type hover:text-on-surface font-mono underline-offset-4 transition-colors hover:underline"
+              className="text-meta-data text-muted-type hover:text-on-surface font-body underline-offset-4 transition-colors hover:underline"
             >
               {link.label}
             </a>

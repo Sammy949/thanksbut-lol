@@ -19,6 +19,11 @@ export const CATEGORIES: readonly CategoryOption[] = [
   { value: "other", label: "Other" },
 ] as const;
 
+/** Quick `category -> label` lookup, shared by cards, lightbox and the preview. */
+export const CATEGORY_LABELS = Object.fromEntries(
+  CATEGORIES.map((c) => [c.value, c.label]),
+) as Record<ArchiveCategory, string>;
+
 /**
  * Filter row shown above the wall. "All" is the default and has no category.
  * `null` means "no filter".

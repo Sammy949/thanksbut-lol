@@ -26,7 +26,7 @@ function TabsTrigger({
   return (
     <TabsPrimitive.Trigger
       className={cn(
-        "text-meta-data text-muted-type hover:text-ink-black data-[state=active]:text-ink-black data-[state=active]:border-ink-black -mb-px flex-1 border-b-2 border-transparent pb-3 text-center font-mono transition-colors focus-visible:outline-none",
+        "text-body-md text-muted-type hover:text-ink-black data-[state=active]:text-ink-black data-[state=active]:border-ink-black font-body -mb-px flex-1 border-b-2 border-transparent pb-3 text-center transition-colors focus-visible:outline-none",
         className,
       )}
       {...props}

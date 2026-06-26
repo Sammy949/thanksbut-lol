@@ -16,7 +16,7 @@ export function ArchiveLoading() {
         <h1 className="text-headline-lg text-muted-type/60 font-display">
           Retrieving Artifacts
         </h1>
-        <p className="text-meta-data text-muted-type font-mono">
+        <p className="text-meta-data text-muted-type font-body">
           Querying archival database…
         </p>
       </div>

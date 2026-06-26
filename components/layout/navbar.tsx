@@ -8,8 +8,8 @@ import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useSubmissionDrawer } from "@/components/upload/submission-context";
 
 /**
- * Fixed, frosted top navigation. Per the locked scope we keep only the active
- * "Archive" link (Gallery/About dropped) plus the theme toggle and Submit CTA.
+ * Fixed, frosted top navigation: just the wordmark, the theme toggle and the
+ * Submit CTA (the "Archive" link was dropped — the homepage is the archive).
  */
 export function Navbar() {
   const { openDrawer } = useSubmissionDrawer();
@@ -23,16 +23,6 @@ export function Navbar() {
         >
           {SITE.name}
         </Link>
-
-        {/* Center nav — desktop only */}
-        <div className="hidden items-center gap-8 md:flex">
-          <Link
-            href="/"
-            className="text-label-caps text-primary border-primary border-b-2 pb-1 font-mono uppercase"
-          >
-            Archive
-          </Link>
-        </div>
 
         <div className="flex items-center gap-2 md:gap-4">
           <ThemeToggle />
