@@ -46,3 +46,6 @@ next-env.d.ts
 
 # Windows zone metadata
 *:Zone.Identifier
+
+# Local-only planning notes & design source (never committed)
+notes/
