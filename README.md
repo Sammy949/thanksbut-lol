@@ -32,13 +32,13 @@ Optional env (the placeholder UI runs without it) — copy `.env.example` to
 
 ## Scripts
 
-| Script              | Does                          |
-| ------------------- | ----------------------------- |
-| `bun dev`           | Dev server (Turbopack)        |
-| `bun run build`     | Production build              |
-| `bun run lint`      | ESLint                        |
-| `bun run typecheck` | `tsc --noEmit`                |
-| `bun run format`    | Prettier write                |
+| Script              | Does                   |
+| ------------------- | ---------------------- |
+| `bun dev`           | Dev server (Turbopack) |
+| `bun run build`     | Production build       |
+| `bun run lint`      | ESLint                 |
+| `bun run typecheck` | `tsc --noEmit`         |
+| `bun run format`    | Prettier write         |
 
 ## Structure
 

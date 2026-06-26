@@ -3,114 +3,230 @@
 
 @custom-variant dark (&:is(.dark *));
 
-/* ---------------------------------------------------------------------------
- * Design tokens (shadcn/ui · neutral base · Tailwind v4 CSS-first).
- * Light values live on :root, dark overrides on .dark (toggled by next-themes).
- * Components read these via the @theme inline mapping below.
- * ------------------------------------------------------------------------- */
+/* ===========================================================================
+ * thanksbut.lol — "The Archive of Rejection"
+ * Light = paper-white editorial · Dark = ink-black "Noir Edition".
+ * Design tokens live on :root / .dark; exposed to Tailwind via @theme inline.
+ * ========================================================================= */
 :root {
-  --radius: 0.625rem;
+  /* --- Editorial design tokens (light) --- */
+  --background: #f9f9f8;
+  --on-background: #1a1c1c;
+  --surface: #f9f9f8;
+  --surface-bright: #f9f9f8;
+  --on-surface: #1a1c1c;
+  --on-surface-variant: #444748;
+  --surface-variant: #e2e2e2;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f3f4f3;
+  --surface-container: #eeeeed;
+  --surface-container-high: #e8e8e7;
+  --surface-container-highest: #e2e2e2;
+  --outline: #747878;
+  --outline-variant: #c4c7c7;
+  --primary: #000000;
+  --on-primary: #ffffff;
+  --secondary: #4648d4;
+  --secondary-container: #6063ee;
+  --on-secondary-container: #fffbff;
+  --inverse-surface: #2f3130;
+  --inverse-on-surface: #f1f1f0;
+  --error: #ba1a1a;
+  --paper-white: #f9f9f8;
+  --ink-black: #121212;
+  --rejection-red: #e11d48;
+  --gallery-gray: #e5e7eb;
+  --muted-type: #6b7280;
 
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
+  /* --- shadcn semantic aliases (Button, Sonner, etc.) --- */
+  --foreground: var(--on-background);
+  --card: var(--surface-container-lowest);
+  --card-foreground: var(--on-surface);
+  --popover: var(--surface-container-lowest);
+  --popover-foreground: var(--on-surface);
+  --primary-foreground: var(--on-primary);
+  --secondary-foreground: var(--on-surface);
+  --muted: var(--surface-container);
+  --muted-foreground: var(--muted-type);
+  --accent: var(--surface-container);
+  --accent-foreground: var(--on-surface);
+  --destructive: var(--rejection-red);
+  --border: var(--gallery-gray);
+  --input: var(--gallery-gray);
+  --ring: var(--outline);
 
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-
-  --destructive: oklch(0.577 0.245 27.325);
-
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --radius: 0.75rem;
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
+  /* --- Noir Edition tokens (dark) --- */
+  --background: #131313;
+  --on-background: #e5e2e1;
+  --surface: #131313;
+  --surface-bright: #3a3939;
+  --on-surface: #e5e2e1;
+  --on-surface-variant: #e4bebc;
+  --surface-variant: #353534;
+  --surface-container-lowest: #0e0e0e;
+  --surface-container-low: #1c1b1b;
+  --surface-container: #201f1f;
+  --surface-container-high: #2a2a2a;
+  --surface-container-highest: #353534;
+  --outline: #ab8987;
+  --outline-variant: #5b403f;
+  --primary: #ffb3b1;
+  --on-primary: #680011;
+  --secondary: #c8c6c5;
+  --secondary-container: #474746;
+  --on-secondary-container: #b7b5b4;
+  --inverse-surface: #e5e2e1;
+  --inverse-on-surface: #313030;
+  --error: #ffb4ab;
+  /* In the Noir palette ink/paper invert so utilities read correctly in dark. */
+  --paper-white: #1c1b1b;
+  --ink-black: #e5e2e1;
+  --rejection-red: #ffb4ab;
+  --gallery-gray: #353534;
+  --muted-type: #c8c6c5;
 
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-
-  --destructive: oklch(0.704 0.191 22.216);
-
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
+  --card: var(--surface-container-low);
+  --popover: var(--surface-container);
+  --muted: var(--surface-container);
+  --accent: var(--surface-container-high);
 }
 
 @theme inline {
+  /* Colors */
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
+  --color-on-background: var(--on-background);
+  --color-surface: var(--surface);
+  --color-surface-bright: var(--surface-bright);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-surface-variant: var(--surface-variant);
+  --color-surface-container-lowest: var(--surface-container-lowest);
+  --color-surface-container-low: var(--surface-container-low);
+  --color-surface-container: var(--surface-container);
+  --color-surface-container-high: var(--surface-container-high);
+  --color-surface-container-highest: var(--surface-container-highest);
+  --color-outline: var(--outline);
+  --color-outline-variant: var(--outline-variant);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-secondary: var(--secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
+  --color-inverse-surface: var(--inverse-surface);
+  --color-inverse-on-surface: var(--inverse-on-surface);
+  --color-error: var(--error);
+  --color-paper-white: var(--paper-white);
+  --color-ink-black: var(--ink-black);
+  --color-rejection-red: var(--rejection-red);
+  --color-gallery-gray: var(--gallery-gray);
+  --color-muted-type: var(--muted-type);
 
+  /* shadcn semantic */
+  --color-foreground: var(--foreground);
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
-
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
-
-  --color-primary: var(--primary);
   --color-primary-foreground: var(--primary-foreground);
-
-  --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-
   --color-accent: var(--accent);
   --color-accent-foreground: var(--accent-foreground);
-
   --color-destructive: var(--destructive);
-
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Fonts (CSS vars injected by next/font in layout) */
+  --font-display: var(--font-playfair);
+  --font-body: var(--font-hanken);
+  --font-mono: var(--font-jetbrains);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Editorial type scale */
+  --text-display-hero: 84px;
+  --text-display-hero--line-height: 90px;
+  --text-display-hero--letter-spacing: -0.02em;
+  --text-display-hero--font-weight: 900;
+
+  --text-headline-lg: 48px;
+  --text-headline-lg--line-height: 56px;
+  --text-headline-lg--font-weight: 700;
+
+  --text-headline-lg-mobile: 32px;
+  --text-headline-lg-mobile--line-height: 38px;
+  --text-headline-lg-mobile--font-weight: 700;
+
+  --text-headline-md: 24px;
+  --text-headline-md--line-height: 32px;
+  --text-headline-md--font-weight: 600;
+
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 28px;
+
+  --text-body-md: 16px;
+  --text-body-md--line-height: 24px;
+
+  --text-meta-data: 13px;
+  --text-meta-data--line-height: 18px;
+
+  --text-label-caps: 12px;
+  --text-label-caps--line-height: 16px;
+  --text-label-caps--letter-spacing: 0.1em;
+  --text-label-caps--font-weight: 500;
+
+  /* Radii */
+  --radius-sheet: 1.5rem;
+
+  --container-max: 1200px;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-gallery-gray;
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-on-background font-body;
+  }
+}
+
+@layer utilities {
+  /* Hide scrollbars on the horizontal filter row. */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Rubber-stamp tilt for REJECTED / GHOSTED / ARCHIVED marks. */
+  .stamp {
+    transform: rotate(-5deg);
+  }
+
+  /* CSS masonry for the archive wall. */
+  .masonry {
+    column-count: 1;
+    column-gap: 1.5rem;
+  }
+  @media (min-width: 768px) {
+    .masonry {
+      column-count: 2;
+    }
+  }
+  @media (min-width: 1024px) {
+    .masonry {
+      column-count: 3;
+    }
+  }
+  .masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1.5rem;
   }
 }

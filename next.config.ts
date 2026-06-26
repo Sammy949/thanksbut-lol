@@ -6,6 +6,8 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       { protocol: "https", hostname: "utfs.io" },
       { protocol: "https", hostname: "*.ufs.sh" },
+      // Mock placeholder artifacts (UI phase only; removed once real uploads land).
+      { protocol: "https", hostname: "picsum.photos" },
     ],
   },
 };

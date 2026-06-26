@@ -4,6 +4,8 @@ import { type ReactNode } from "react";
 import { ThemeProvider } from "next-themes";
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 
+import { SubmissionProvider } from "@/components/upload/submission-provider";
+
 /**
  * Convex client is created only when a deployment URL is configured.
  * The backend isn't built yet, so the app must run fine without it —
@@ -20,7 +22,7 @@ export function Providers({ children }: { children: ReactNode }) {
       enableSystem
       disableTransitionOnChange
     >
-      {children}
+      <SubmissionProvider>{children}</SubmissionProvider>
     </ThemeProvider>
   );
 

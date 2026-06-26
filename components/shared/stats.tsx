@@ -1,12 +1,18 @@
+import { Archive as ArchiveIcon } from "lucide-react";
+
+import { formatCount } from "@/lib/format";
+
 /**
- * Tiny archive counter shown under the hero. Placeholder — the count is wired
- * to the backend later. Watching it climb is the only "metric" on the site.
+ * Tiny archive counter. The site's only "metric" — watching it climb is the
+ * reward. Count is mocked for now; wired to the backend later.
  */
-export function Stats({ count = 0 }: { count?: number }) {
+export function Stats({ count }: { count: number }) {
   return (
-    <p className="text-muted-foreground text-center text-sm">
-      <span className="text-foreground font-medium">{count.toLocaleString()}</span>{" "}
-      archives
-    </p>
+    <div className="text-secondary flex items-center gap-2">
+      <ArchiveIcon className="size-4" />
+      <span className="text-meta-data text-muted-type font-mono">
+        {formatCount(count)} rejections archived
+      </span>
+    </div>
   );
 }
