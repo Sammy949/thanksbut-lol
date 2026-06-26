@@ -1,0 +1,9 @@
+node_modules
+.next
+out
+build
+bun.lock
+pnpm-lock.yaml
+package-lock.json
+convex/_generated
+next-env.d.ts
