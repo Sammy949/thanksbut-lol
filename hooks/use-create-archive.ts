@@ -39,15 +39,17 @@ export function useCreateArchive() {
       const result = uploaded?.[0];
       if (!result) throw new Error("Image upload failed.");
 
+      // Only include optional fields when defined — Convex rejects objects that
+      // carry explicit `undefined` values.
       image = {
         url: result.serverData.url,
         key: result.serverData.key,
         name: result.serverData.name,
         size: result.serverData.size,
         type: result.serverData.type,
-        width: dims?.width,
-        height: dims?.height,
-        blurDataUrl: blurDataUrl ?? undefined,
+        ...(dims?.width ? { width: dims.width } : {}),
+        ...(dims?.height ? { height: dims.height } : {}),
+        ...(blurDataUrl ? { blurDataUrl } : {}),
       };
     }
 

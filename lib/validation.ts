@@ -6,7 +6,7 @@ import { z } from "zod";
  * can import it. The File-based form schema lives in `submission-schema.ts`.
  */
 
-export const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB
+export const MAX_IMAGE_BYTES = 8 * 1024 * 1024; // 8MB (originals shrink client-side before upload)
 export const ACCEPTED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"] as const;
 
 export const categorySchema = z.enum([

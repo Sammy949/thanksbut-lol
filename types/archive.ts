@@ -40,6 +40,8 @@ export interface Archive {
   displayName?: string;
   /** Reaction count (the single 🥲 reaction). */
   reactions: number;
+  /** Whether the current visitor has reacted (live data only; mock omits it). */
+  reacted?: boolean;
   /** Creation timestamp, epoch milliseconds. */
   createdAt: number;
   /** Optional decorative stamp (REJECTED / GHOSTED). */

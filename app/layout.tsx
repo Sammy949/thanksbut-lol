@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Playfair_Display, Hanken_Grotesk, JetBrains_Mono } from "next/font/google";
+import { EB_Garamond, Space_Mono } from "next/font/google";
 
 import { SITE } from "@/constants/site";
 import { Toaster } from "@/components/ui/sonner";
@@ -8,23 +8,19 @@ import { SiteFooter } from "@/components/layout/site-footer";
 import { Providers } from "./providers";
 import "./globals.css";
 
-// Display / headlines — high-contrast editorial serif.
-const playfair = Playfair_Display({
-  variable: "--font-playfair",
+// Display / headlines / narrative — literary serif.
+const garamond = EB_Garamond({
+  variable: "--font-garamond",
   subsets: ["latin"],
   style: ["normal", "italic"],
 });
 
-// Body — sharp, legible grotesque.
-const hanken = Hanken_Grotesk({
-  variable: "--font-hanken",
+// UI / labels / metadata / typed-letter bodies — the "archivist's hand".
+const spaceMono = Space_Mono({
+  variable: "--font-space-mono",
   subsets: ["latin"],
-});
-
-// Labels / metadata — monospace for the "archival database" feel.
-const jetbrainsMono = JetBrains_Mono({
-  variable: "--font-jetbrains",
-  subsets: ["latin"],
+  weight: ["400", "700"],
+  style: ["normal", "italic"],
 });
 
 export const metadata: Metadata = {
@@ -34,6 +30,7 @@ export const metadata: Metadata = {
   },
   description: SITE.description,
   metadataBase: new URL(SITE.url),
+  icons: { icon: "/api/favicon" },
   openGraph: {
     title: `${SITE.tagline} — ${SITE.name}`,
     description: SITE.description,
@@ -57,14 +54,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${playfair.variable} ${hanken.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${garamond.variable} ${spaceMono.variable} h-full antialiased`}
     >
-      <body className="font-body flex min-h-full flex-col">
+      <body className="font-body bg-paper-grain flex min-h-full flex-col">
         <Providers>
           <Navbar />
-          <main className="mx-auto w-full max-w-[1200px] flex-1 px-5 pt-20 md:px-8 md:pt-24">
-            {children}
-          </main>
+          <main className="flex-1">{children}</main>
           <SiteFooter />
         </Providers>
         <Toaster />

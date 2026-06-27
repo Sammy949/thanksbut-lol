@@ -1,39 +1,41 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
-/** Loading state: "Retrieving Artifacts" + a skeleton masonry. */
+const ROTATIONS = [-2, 2, 1.5, -3, 1, -1.5];
+
+/** Loading state: "Retrieving artifacts…" + a skeleton paper board. */
 export function ArchiveLoading() {
-  const cards = [
-    { img: true, lines: 3 },
-    { img: false, lines: 4 },
-    { img: true, lines: 2 },
-    { img: false, lines: 3 },
-    { img: true, lines: 2 },
-  ];
-
   return (
-    <div className="flex flex-col gap-8 py-12">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-headline-lg text-muted-type/60 font-display">
-          Retrieving Artifacts
-        </h1>
-        <p className="text-meta-data text-muted-type font-body">
-          Querying archival database…
-        </p>
-      </div>
+    <div className="mx-auto max-w-[1120px] px-5 py-12 md:px-16">
+      <h1 className="text-headline-md text-on-surface-variant font-display mb-1">
+        Retrieving artifacts…
+      </h1>
+      <p className="text-code-snippet text-secondary mb-8 font-mono">
+        Querying the basement archives
+      </p>
 
-      <div className="masonry">
-        {cards.map((card, i) => (
-          <div key={i} className="masonry-item">
-            <div className="border-gallery-gray bg-surface-container-lowest flex flex-col gap-4 rounded-[1.5rem] border p-6">
-              <div className="flex items-center justify-between">
-                <Skeleton className="h-5 w-1/3" />
-                <Skeleton className="h-5 w-12" />
+      <div className="columns-1 gap-x-8 sm:columns-2 lg:columns-3">
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div key={i} className="mb-10 break-inside-avoid">
+            <div
+              className="paper-card p-5"
+              style={{ transform: `rotate(${ROTATIONS[i % ROTATIONS.length]}deg)` }}
+            >
+              <div className="border-outline-variant mb-3 flex justify-between border-b border-dashed pb-2">
+                <Skeleton className="h-4 w-1/3" />
+                <Skeleton className="h-4 w-12" />
               </div>
-              {card.img && <Skeleton className="aspect-[4/3] w-full rounded-lg" />}
-              <div className="flex flex-col gap-2">
-                {Array.from({ length: card.lines }).map((_, j) => (
-                  <Skeleton key={j} className="h-3 w-full" />
-                ))}
+              {i % 2 === 0 ? (
+                <Skeleton className="aspect-[4/3] w-full" />
+              ) : (
+                <div className="space-y-2">
+                  <Skeleton className="h-3 w-full" />
+                  <Skeleton className="h-3 w-5/6" />
+                  <Skeleton className="h-3 w-2/3" />
+                </div>
+              )}
+              <div className="border-outline-variant mt-4 flex justify-between border-t pt-3">
+                <Skeleton className="h-3 w-20" />
+                <Skeleton className="h-3 w-8" />
               </div>
             </div>
           </div>
