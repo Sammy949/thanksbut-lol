@@ -8,26 +8,29 @@ interface ReactionButtonProps {
   count: number;
   className?: string;
   /**
-   * Live mode: whether the visitor has reacted, and a toggle handler. When
-   * `onToggle` is provided the button is fully controlled by these props (the
-   * Convex mutation drives the count via its optimistic update). When omitted
-   * the button keeps its own local optimistic state — used by the mock wall.
+   * Live mode: whether the visitor has reacted, and a toggle handler. By default
+   * `onToggle` makes the button fully controlled by these props (the wall, where
+   * the query's optimistic update re-renders the card). Pass `optimistic` for
+   * surfaces that DON'T re-render from the query (e.g. the lightbox snapshot):
+   * the button then manages its own count locally AND still fires `onToggle`.
    */
   reacted?: boolean;
   onToggle?: () => void;
+  optimistic?: boolean;
 }
 
-/** The single 🥲 reaction. Controlled in live mode, locally optimistic in mock. */
+/** The single 🥲 reaction. Controlled on the wall, locally optimistic elsewhere. */
 export function ReactionButton({
   count,
   className,
   reacted,
   onToggle,
+  optimistic,
 }: ReactionButtonProps) {
-  const controlled = onToggle !== undefined;
+  const controlled = onToggle !== undefined && !optimistic;
 
   const [localReactions, setLocalReactions] = React.useState(count);
-  const [localReacted, setLocalReacted] = React.useState(false);
+  const [localReacted, setLocalReacted] = React.useState(Boolean(reacted));
 
   const displayReactions = controlled ? count : localReactions;
   const displayReacted = controlled ? Boolean(reacted) : localReacted;
@@ -41,6 +44,7 @@ export function ReactionButton({
       setLocalReactions((n) => n + (prev ? -1 : 1));
       return !prev;
     });
+    onToggle?.(); // optimistic mode: update locally AND fire the mutation
   };
 
   return (
