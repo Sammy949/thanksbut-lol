@@ -14,7 +14,7 @@ const f = createUploadthing();
  */
 export const ourFileRouter = {
   archiveImage: f({
-    image: { maxFileSize: "16MB", maxFileCount: 1 },
+    image: { maxFileSize: "8MB", maxFileCount: 1 },
   })
     .middleware(async ({ files }) => {
       const file = files[0];
@@ -22,7 +22,7 @@ export const ourFileRouter = {
         throw new UploadThingError("Use a PNG, JPG, or WebP image.");
       }
       if (file && file.size > MAX_IMAGE_BYTES) {
-        throw new UploadThingError("Image must be 16MB or smaller.");
+        throw new UploadThingError("Image must be 8MB or smaller.");
       }
       return {};
     })

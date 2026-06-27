@@ -15,7 +15,7 @@ export const submissionSchema = z
   .object({
     image: z
       .instanceof(File)
-      .refine((f) => f.size <= MAX_IMAGE_BYTES, "Image must be 16MB or smaller.")
+      .refine((f) => f.size <= MAX_IMAGE_BYTES, "Image must be 8MB or smaller.")
       .refine(
         (f) => (ACCEPTED_IMAGE_TYPES as readonly string[]).includes(f.type),
         "Use a PNG, JPG, or WebP image.",
