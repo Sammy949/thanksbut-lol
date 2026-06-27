@@ -36,6 +36,7 @@ export function ComposeForm({
   onRevealText,
 }: ComposeFormProps) {
   const error = form.formState.errors.image?.message;
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   return (
     <form className="flex flex-col gap-6">
@@ -59,29 +60,36 @@ export function ComposeForm({
             </button>
           </div>
         ) : (
-          <label className="border-outline-variant bg-surface-bright hover:bg-surface-container-low group flex cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-center transition-colors">
-            <div className="bg-surface-container border-outline-variant flex size-12 items-center justify-center rounded-full border transition-transform group-hover:scale-105">
-              <UploadCloud className="text-on-surface-variant size-5" />
-            </div>
-            <div>
-              <p className="text-body-md text-on-background font-body">
-                Upload Screenshot
-              </p>
-              <p className="text-code-snippet text-secondary font-body mt-1">
-                PNG, JPG up to 5MB
-              </p>
-            </div>
+          <>
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="border-outline-variant bg-surface-bright hover:bg-surface-container-low group flex w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-center transition-colors"
+            >
+              <div className="bg-surface-container border-outline-variant flex size-12 items-center justify-center rounded-full border transition-transform group-hover:scale-105">
+                <UploadCloud className="text-on-surface-variant size-5" />
+              </div>
+              <div>
+                <p className="text-body-md text-on-background font-body">
+                  Upload Screenshot
+                </p>
+                <p className="text-code-snippet text-secondary font-body mt-1">
+                  PNG, JPG up to 5MB
+                </p>
+              </div>
+            </button>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/png,image/jpeg,image/webp"
               className="hidden"
               onChange={(e) => {
                 const file = e.target.files?.[0];
-                if (file) onEditImage(file);
                 e.target.value = "";
+                if (file) onEditImage(file);
               }}
             />
-          </label>
+          </>
         )}
         {error && <p className="text-code-snippet text-primary font-body">{error}</p>}
 
