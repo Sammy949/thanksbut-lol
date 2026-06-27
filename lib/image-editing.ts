@@ -140,11 +140,22 @@ export async function canvasToCompressedFile(
   const name = fileName.replace(/\.\w+$/, "") + ".jpg";
   const raw = new File([blob], name, { type: "image/jpeg" });
 
-  // Keep rejection text legible while still shrinking the upload.
-  return imageCompression(raw, {
-    maxSizeMB: 2,
-    maxWidthOrHeight: 2000,
-    initialQuality: 0.9,
-    useWebWorker: true,
-  });
+  try {
+    // Keep rejection text legible while still shrinking the upload.
+    // Typed as Blob: the lib's types say File, but it can return a Blob at runtime.
+    const compressed: Blob = await imageCompression(raw, {
+      maxSizeMB: 2,
+      maxWidthOrHeight: 2000,
+      initialQuality: 0.9,
+      useWebWorker: true,
+    });
+    // browser-image-compression can hand back a Blob (esp. via web worker);
+    // normalise to a real File so `z.instanceof(File)` + UploadThing accept it.
+    return compressed instanceof File
+      ? compressed
+      : new File([compressed], name, { type: compressed.type || "image/jpeg" });
+  } catch {
+    // If compression fails, upload the (already canvas-stripped) original.
+    return raw;
+  }
 }

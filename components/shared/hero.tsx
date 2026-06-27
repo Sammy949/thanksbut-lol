@@ -24,7 +24,7 @@ export function Hero({ count }: { count: number }) {
       />
       <StampMark
         label="VOID"
-        className="absolute bottom-10 left-[6%] rotate-[6deg] text-[18px] opacity-20"
+        className="absolute right-3 bottom-2 rotate-[6deg] text-[11px] opacity-20 sm:right-auto sm:bottom-10 sm:left-[6%] sm:text-[18px]"
       />
       <StampMark
         label="CLASSIFIED"
