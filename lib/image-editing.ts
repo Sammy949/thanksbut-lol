@@ -140,10 +140,11 @@ export async function canvasToCompressedFile(
   const name = fileName.replace(/\.\w+$/, "") + ".jpg";
   const raw = new File([blob], name, { type: "image/jpeg" });
 
+  // Keep rejection text legible while still shrinking the upload.
   return imageCompression(raw, {
-    maxSizeMB: 1,
-    maxWidthOrHeight: 1600,
-    initialQuality: 0.85,
+    maxSizeMB: 2,
+    maxWidthOrHeight: 2000,
+    initialQuality: 0.9,
     useWebWorker: true,
   });
 }

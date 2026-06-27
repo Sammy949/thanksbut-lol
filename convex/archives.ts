@@ -1,12 +1,13 @@
 import { paginationOptsValidator } from "convex/server";
-import { v } from "convex/values";
+import { v, ConvexError } from "convex/values";
+import { ZodError } from "zod";
 
 import { mutation, query, type QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { categoryValidator, imageValidator } from "./schema";
 import { serializeArchive } from "./lib/serialize";
 import { resolveIdentity } from "./lib/identity";
-import { archiveInputSchema } from "../lib/validation";
+import { archiveInputSchema, type ArchiveInputValues } from "../lib/validation";
 
 /** Has this caller reacted to the given archive? */
 async function hasReacted(
@@ -92,8 +93,23 @@ export const create = mutation({
     displayName: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
-    // Shared business validation (image-or-text, lengths) — same rules as the client.
-    const input = archiveInputSchema.parse(args);
+    // Shared business validation (image-or-text, lengths) — same rules as the
+    // client. Surface a readable, specific message instead of a raw ZodError.
+    let input: ArchiveInputValues;
+    try {
+      input = archiveInputSchema.parse(args);
+    } catch (err) {
+      if (err instanceof ZodError) {
+        const issue = err.issues[0];
+        const field = issue?.path.join(".");
+        throw new ConvexError(
+          issue
+            ? `${field ? `${field}: ` : ""}${issue.message}`
+            : "That submission didn't pass validation.",
+        );
+      }
+      throw err;
+    }
     const manageToken = crypto.randomUUID();
 
     const id = await ctx.db.insert("archives", {

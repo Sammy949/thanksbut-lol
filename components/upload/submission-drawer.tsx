@@ -5,7 +5,8 @@ import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { X, ArrowRight } from "lucide-react";
+import { ConvexError } from "convex/values";
+import { X, ArrowRight, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { useCreateArchive } from "@/hooks/use-create-archive";
@@ -85,10 +86,17 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
         displayName: data.displayName || undefined,
       });
       setArchivedId(id);
-    } catch (err) {
-      toast.error("Couldn't archive that", {
-        description: err instanceof Error ? err.message : "Please try again.",
+      toast.success("Archived for the culture", {
+        description: "Your rejection is now part of the wall.",
       });
+    } catch (err) {
+      const description =
+        err instanceof ConvexError
+          ? String(err.data)
+          : err instanceof Error
+            ? err.message
+            : "Please try again.";
+      toast.error("Couldn't archive that", { description });
     } finally {
       setSubmitting(false);
     }
@@ -100,8 +108,17 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
         <DialogPrimitive.Portal>
           <DialogPrimitive.Overlay className="bg-on-surface/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 backdrop-blur-sm" />
           <DialogPrimitive.Content
+            // The image editor is a full-screen overlay rendered outside this
+            // dialog. While it's open, ignore "interact outside" / Escape so
+            // editing the screenshot doesn't silently dismiss the drawer.
+            onInteractOutside={(e) => {
+              if (editingFile) e.preventDefault();
+            }}
+            onEscapeKeyDown={(e) => {
+              if (editingFile) e.preventDefault();
+            }}
             className={cn(
-              "bg-surface-container-lowest data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-2 md:data-[state=open]:slide-in-from-right-2 fixed inset-x-0 bottom-0 z-50 flex h-[92vh] max-h-[860px] flex-col rounded-t-[1.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] duration-300",
+              "bg-surface-container-lowest data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-2 md:data-[state=open]:slide-in-from-right-2 fixed inset-x-0 bottom-0 z-50 flex h-[92vh] max-h-[860px] flex-col rounded-none shadow-[0_-10px_40px_rgba(0,0,0,0.15)] duration-300",
               "md:inset-y-0 md:right-0 md:left-auto md:h-full md:max-h-none md:w-[560px] md:rounded-none md:border-l md:shadow-[-10px_0_40px_rgba(0,0,0,0.1)]",
             )}
           >
@@ -114,17 +131,23 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 id={archivedId}
                 category={values.category}
                 onView={() => handleOpenChange(false)}
-                onShare={() =>
-                  toast.success("Link copied", {
-                    description: "Share your rejection with the world.",
-                  })
-                }
+                onShare={async () => {
+                  const url = `${window.location.origin}/?a=${archivedId}`;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Link copied", { description: url });
+                  } catch {
+                    toast.error("Couldn't copy the link", {
+                      description: "Copy it manually: " + url,
+                    });
+                  }
+                }}
               />
             ) : (
               <>
                 {/* Drag handle (mobile) */}
                 <div className="flex justify-center pt-3 pb-1 md:hidden">
-                  <div className="bg-outline-variant h-1.5 w-12 rounded-full" />
+                  <div className="bg-outline-variant h-1.5 w-12 rounded-none" />
                 </div>
 
                 <div className="flex items-start justify-between px-5 py-4">
@@ -136,7 +159,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                       Archive your rejection for the culture.
                     </p>
                   </div>
-                  <DialogPrimitive.Close className="text-outline hover:text-on-surface flex size-9 items-center justify-center rounded-full transition-colors">
+                  <DialogPrimitive.Close className="text-outline hover:text-on-surface flex size-9 items-center justify-center rounded-none transition-colors">
                     <X className="size-5" />
                     <span className="sr-only">Close</span>
                   </DialogPrimitive.Close>
@@ -178,10 +201,18 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                     shape="sheet"
                     className="w-full"
                     disabled={submitting}
-                    onClick={form.handleSubmit(onSubmit)}
+                    onClick={form.handleSubmit(onSubmit, () =>
+                      toast.error("Almost there", {
+                        description:
+                          "Add a screenshot or some rejection text first.",
+                      }),
+                    )}
                   >
                     {submitting ? (
-                      "Archiving…"
+                      <>
+                        <Loader2 className="size-4 animate-spin" />
+                        Archiving…
+                      </>
                     ) : (
                       <>
                         Archive Yours
@@ -203,6 +234,9 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
           onComplete={(processed) => {
             onPickImage(processed);
             setEditingFile(null);
+            toast.success("Screenshot ready", {
+              description: "Cropped and redacted. Review, then archive it.",
+            });
           }}
         />
       )}

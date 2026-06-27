@@ -97,40 +97,38 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
 
   return (
     <div className="bg-on-surface/60 fixed inset-0 z-[60] flex flex-col backdrop-blur-sm md:flex-row">
-      {/* Stage / image */}
+      {/* Stage / image — the Cropper positions itself absolute inset-0, so this
+          relative parent is its sizing box. min-h-0 lets it shrink under flex. */}
       <div className="bg-surface-container-lowest relative flex min-h-0 flex-1 items-center justify-center overflow-hidden p-4">
-        {stage === "crop" ? (
-          <div className="relative h-full min-h-[50vh] w-full">
-            {url && (
-            <Cropper
-              image={url}
-              crop={crop}
-              zoom={zoom}
-              rotation={rotation}
-              aspect={aspect}
-              onCropChange={setCrop}
-              onZoomChange={setZoom}
-              onRotationChange={setRotation}
-              onCropComplete={(_, px) => setAreaPixels(px)}
-              showGrid={false}
-            />
+        {stage === "crop"
+          ? url && (
+              <Cropper
+                image={url}
+                crop={crop}
+                zoom={zoom}
+                rotation={rotation}
+                aspect={aspect}
+                onCropChange={setCrop}
+                onZoomChange={setZoom}
+                onRotationChange={setRotation}
+                onCropComplete={(_, px) => setAreaPixels(px)}
+                showGrid={false}
+              />
+            )
+          : croppedUrl && (
+              <RedactionEditor
+                src={croppedUrl}
+                redactions={redactions}
+                onChange={setRedactions}
+                selectedId={selectedId}
+                onSelect={setSelectedId}
+              />
             )}
-          </div>
-        ) : (
-          croppedUrl && (
-            <RedactionEditor
-              src={croppedUrl}
-              redactions={redactions}
-              onChange={setRedactions}
-              selectedId={selectedId}
-              onSelect={setSelectedId}
-            />
-          )
-        )}
       </div>
 
-      {/* Controls */}
-      <aside className="bg-surface border-outline-variant flex shrink-0 flex-col gap-5 border-t p-5 md:w-80 md:border-t-0 md:border-l">
+      {/* Controls — capped + scrollable on mobile so the actions are always
+          reachable; full-height rail on desktop. */}
+      <aside className="bg-surface border-outline-variant flex max-h-[48vh] shrink-0 flex-col gap-5 overflow-y-auto border-t p-5 md:max-h-none md:w-80 md:border-t-0 md:border-l">
         <div className="flex items-center justify-between">
           <h2 className="text-headline-sm text-on-surface font-display">
             {stage === "crop" ? "Crop" : "Hide info"}
