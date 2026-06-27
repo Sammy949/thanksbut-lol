@@ -16,12 +16,12 @@ export function ArtifactPreview({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-label-caps text-muted-type font-body text-center uppercase">
+      <p className="text-label-caps text-secondary font-body text-center uppercase">
         Artifact Preview
       </p>
-      <article className="bg-paper-white border-gallery-gray flex flex-col gap-4 rounded-xl border p-6">
+      <article className="bg-surface border-outline-variant flex flex-col gap-4 rounded-xl border p-6">
         <div className="flex items-start justify-between gap-3">
-          <span className="text-headline-md text-ink-black font-display">
+          <span className="text-headline-md text-on-surface font-display">
             {values.company || "Anonymous"}
           </span>
           <Badge variant="outline">{CATEGORY_LABELS[values.category]}</Badge>
@@ -32,7 +32,7 @@ export function ArtifactPreview({
           </div>
         )}
         {values.text && (
-          <p className="text-body-md text-muted-type font-body italic">
+          <p className="text-body-md text-secondary font-body italic">
             &ldquo;{values.text}&rdquo;
           </p>
         )}
@@ -41,12 +41,12 @@ export function ArtifactPreview({
             {values.caption}
           </p>
         )}
-        <div className="border-gallery-gray flex items-center justify-between border-t pt-4">
-          <span className="text-meta-data text-muted-type font-mono">Just now</span>
-          <span className="text-meta-data text-muted-type font-mono">🥲 0</span>
+        <div className="border-outline-variant flex items-center justify-between border-t pt-4">
+          <span className="text-code-snippet text-secondary font-mono">Just now</span>
+          <span className="text-code-snippet text-secondary font-mono">🥲 0</span>
         </div>
       </article>
-      <p className="text-body-md text-muted-type font-body px-4 text-center">
+      <p className="text-body-md text-secondary font-body px-4 text-center">
         This is how your rejection will appear in the archive. Ready to share the
         hustle?
       </p>

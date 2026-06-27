@@ -62,7 +62,7 @@ export function ReportDialog({ open, onOpenChange }: ReportDialogProps) {
           ))}
         </RadioGroup>
 
-        <DialogFooter className="border-gallery-gray border-t pt-4">
+        <DialogFooter className="border-outline-variant border-t pt-4">
           <DialogClose asChild>
             <Button variant="ghost" size="sm">
               Cancel

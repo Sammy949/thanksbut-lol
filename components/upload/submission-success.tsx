@@ -31,7 +31,7 @@ export function SubmissionSuccess({
       </div>
 
       <div className="mt-4 flex flex-col gap-2">
-        <h2 className="text-headline-lg-mobile text-primary font-display">
+        <h2 className="text-headline-md text-primary font-display">
           Archived for the culture.
         </h2>
         <p className="text-body-lg text-on-surface-variant font-display italic">
@@ -41,7 +41,7 @@ export function SubmissionSuccess({
 
       <div className="border-primary/40 relative mt-8 flex-1 overflow-hidden rounded-2xl border p-6">
         <div className="flex items-center justify-between">
-          <span className="text-meta-data text-on-surface font-mono">ID: {id}</span>
+          <span className="text-code-snippet text-on-surface font-mono">ID: {id}</span>
           <Badge variant="solid">{CATEGORY_LABELS[category]}</Badge>
         </div>
         <div className="mt-6 flex flex-col gap-3">
@@ -51,7 +51,7 @@ export function SubmissionSuccess({
           <div className="bg-surface-container-high h-3 w-1/2 rounded-full" />
         </div>
         <div className="mt-8 flex justify-center">
-          <StampMark label="Archived" className="text-headline-lg-mobile" />
+          <StampMark label="Archived" className="text-headline-md" />
         </div>
       </div>
 

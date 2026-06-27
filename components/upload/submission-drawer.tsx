@@ -76,7 +76,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
   return (
     <DialogPrimitive.Root open={open} onOpenChange={handleOpenChange}>
       <DialogPrimitive.Portal>
-        <DialogPrimitive.Overlay className="bg-ink-black/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 backdrop-blur-sm" />
+        <DialogPrimitive.Overlay className="bg-on-surface/40 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 backdrop-blur-sm" />
         <DialogPrimitive.Content
           className={cn(
             "bg-surface-container-lowest data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=open]:slide-in-from-bottom-2 md:data-[state=open]:slide-in-from-right-2 fixed inset-x-0 bottom-0 z-50 flex h-[92vh] max-h-[860px] flex-col rounded-t-[1.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.15)] duration-300",
@@ -150,7 +150,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 </div>
               </Tabs>
 
-              <div className="border-gallery-gray border-t p-5">
+              <div className="border-outline-variant border-t p-5">
                 <Button
                   shape="sheet"
                   className="w-full"

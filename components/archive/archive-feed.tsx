@@ -34,7 +34,7 @@ export function ArchiveFeed({ archives }: { archives: Archive[] }) {
   };
 
   return (
-    <section className="flex flex-col gap-6">
+    <section className="flex flex-col gap-10 pt-2 pb-24">
       <CategoryFilters value={category} onChange={setCategory} />
 
       {filtered.length > 0 ? (

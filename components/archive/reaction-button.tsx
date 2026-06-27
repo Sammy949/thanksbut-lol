@@ -32,13 +32,13 @@ export function ReactionButton({
       aria-pressed={reacted}
       aria-label="React with a tear-smile"
       className={cn(
-        "flex items-center gap-1.5 rounded-full px-2 py-1 transition-colors",
-        reacted ? "text-on-surface" : "text-muted-type hover:text-on-surface",
+        "flex items-center gap-1 font-mono text-xs font-bold transition-colors",
+        reacted ? "text-primary" : "text-secondary hover:text-primary",
         className,
       )}
     >
-      <span className="text-base leading-none">🥲</span>
-      <span className="text-meta-data font-mono">{reactions}</span>
+      <span className="text-sm leading-none">🥲</span>
+      <span>{reactions}</span>
     </button>
   );
 }

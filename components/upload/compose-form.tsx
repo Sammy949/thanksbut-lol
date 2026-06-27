@@ -38,7 +38,7 @@ export function ComposeForm({
       {/* Image dropzone — primary */}
       <div className="flex flex-col gap-2">
         {preview ? (
-          <div className="border-gallery-gray relative aspect-[4/3] w-full overflow-hidden rounded-xl border">
+          <div className="border-outline-variant relative aspect-[4/3] w-full overflow-hidden rounded-xl border">
             <Image
               src={preview}
               alt="Screenshot preview"
@@ -56,14 +56,14 @@ export function ComposeForm({
           </div>
         ) : (
           <label className="border-outline-variant bg-surface-bright hover:bg-surface-container-low group flex cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-center transition-colors">
-            <div className="bg-surface-container border-gallery-gray flex size-12 items-center justify-center rounded-full border transition-transform group-hover:scale-105">
+            <div className="bg-surface-container border-outline-variant flex size-12 items-center justify-center rounded-full border transition-transform group-hover:scale-105">
               <UploadCloud className="text-on-surface-variant size-5" />
             </div>
             <div>
               <p className="text-body-md text-on-background font-body">
                 Upload Screenshot
               </p>
-              <p className="text-meta-data text-muted-type font-body mt-1">
+              <p className="text-code-snippet text-secondary font-body mt-1">
                 PNG, JPG up to 5MB
               </p>
             </div>
@@ -75,9 +75,7 @@ export function ComposeForm({
             />
           </label>
         )}
-        {error && (
-          <p className="text-meta-data text-rejection-red font-body">{error}</p>
-        )}
+        {error && <p className="text-code-snippet text-primary font-body">{error}</p>}
 
         {/* Text fallback — progressive reveal */}
         {showText ? (
@@ -91,7 +89,7 @@ export function ComposeForm({
           <button
             type="button"
             onClick={onRevealText}
-            className="text-meta-data text-muted-type hover:text-on-surface font-body mt-1 inline-flex items-center gap-1 self-start"
+            className="text-code-snippet text-secondary hover:text-on-surface font-body mt-1 inline-flex items-center gap-1 self-start"
           >
             no screenshot? add text
             <ChevronDown className="size-3.5" />
@@ -120,9 +118,9 @@ export function ComposeForm({
                   key={c.value}
                   value={c.value}
                   className={cn(
-                    "text-meta-data rounded-full border px-4 py-2 font-mono",
-                    "bg-surface-bright text-on-surface-variant border-gallery-gray hover:border-outline",
-                    "data-[state=on]:bg-ink-black data-[state=on]:text-paper-white data-[state=on]:border-ink-black",
+                    "text-code-snippet rounded-full border px-4 py-2 font-mono",
+                    "bg-surface-bright text-on-surface-variant border-outline-variant hover:border-outline",
+                    "data-[state=on]:bg-on-surface data-[state=on]:text-surface data-[state=on]:border-on-surface",
                   )}
                 >
                   {c.label}

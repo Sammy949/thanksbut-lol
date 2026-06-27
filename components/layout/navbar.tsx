@@ -7,27 +7,30 @@ import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { useSubmissionDrawer } from "@/components/upload/submission-context";
 
-/**
- * Fixed, frosted top navigation: just the wordmark, the theme toggle and the
- * Submit CTA (the "Archive" link was dropped — the homepage is the archive).
- */
+/** Sticky paper nav: wordmark · The Wall · theme · Archive Yours. */
 export function Navbar() {
   const { openDrawer } = useSubmissionDrawer();
 
   return (
-    <header className="bg-surface/80 border-gallery-gray fixed inset-x-0 top-0 z-40 backdrop-blur-xl">
-      <nav className="mx-auto flex h-16 w-full max-w-[1200px] items-center justify-between border-b border-transparent px-5 md:px-8">
+    <header className="bg-surface/90 border-outline-variant sticky top-0 z-50 border-b backdrop-blur-sm">
+      <nav className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between px-5 md:px-16">
         <Link
           href="/"
-          className="text-headline-md text-on-surface font-display tracking-tight"
+          className="text-primary font-mono text-[20px] font-bold tracking-[0.15em] uppercase"
         >
           {SITE.name}
         </Link>
 
-        <div className="flex items-center gap-2 md:gap-4">
+        <div className="flex items-center gap-4 md:gap-6">
+          <Link
+            href="/"
+            className="text-primary border-primary text-label-caps hidden border-b-2 pb-1 font-mono uppercase md:inline-block"
+          >
+            The Wall
+          </Link>
           <ThemeToggle />
           <Button size="pill" onClick={openDrawer}>
-            Submit Rejection
+            Archive Yours
           </Button>
         </div>
       </nav>

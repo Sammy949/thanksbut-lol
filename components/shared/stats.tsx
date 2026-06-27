@@ -10,7 +10,7 @@ export function Stats({ count }: { count: number }) {
   return (
     <div className="text-secondary flex items-center gap-2">
       <ArchiveIcon className="size-4" />
-      <span className="text-meta-data text-muted-type font-mono">
+      <span className="text-code-snippet text-secondary font-mono">
         {formatCount(count)} rejections archived
       </span>
     </div>

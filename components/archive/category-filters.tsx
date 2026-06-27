@@ -11,24 +11,23 @@ interface CategoryFiltersProps {
   onChange: (value: ArchiveCategory | null) => void;
 }
 
-/** Horizontal, scrollable pill row (shadcn ToggleGroup, single-select). */
+/** Index-card filter tabs — monospace, the active one inked solid. */
 export function CategoryFilters({ value, onChange }: CategoryFiltersProps) {
   return (
-    <div className="no-scrollbar -mx-5 overflow-x-auto px-5 md:mx-0 md:px-0">
+    <div className="no-scrollbar mx-auto -mb-px max-w-[1120px] overflow-x-auto px-5 md:px-16">
       <ToggleGroup
         type="single"
         value={value ?? ALL}
         onValueChange={(v) => {
-          // Radix returns "" when deselecting the active item — keep one active.
           if (v) onChange(v === ALL ? null : (v as ArchiveCategory));
         }}
-        className="min-w-max gap-3"
+        className="border-outline-variant flex min-w-max gap-2 border-b"
       >
         {CATEGORY_FILTERS.map((filter) => (
           <ToggleGroupItem
             key={filter.label}
             value={filter.value ?? ALL}
-            className="text-label-caps text-secondary border-outline-variant hover:bg-surface-variant hover:text-on-surface-variant data-[state=on]:bg-ink-black data-[state=on]:text-paper-white data-[state=on]:border-ink-black rounded-full border px-6 py-2 font-mono uppercase"
+            className="text-label-caps text-secondary hover:text-on-surface data-[state=on]:text-primary data-[state=on]:border-primary -mb-px border-b-2 border-transparent px-3 pb-2 font-mono uppercase"
           >
             {filter.label}
           </ToggleGroupItem>

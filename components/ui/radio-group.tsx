@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import * as RadioGroupPrimitive from "@radix-ui/react-radio-group";
-import { Circle } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -15,6 +14,7 @@ function RadioGroup({
   );
 }
 
+/** Sharp square box that fills with a solid ink square when selected. */
 function RadioGroupItem({
   className,
   ...props
@@ -22,13 +22,13 @@ function RadioGroupItem({
   return (
     <RadioGroupPrimitive.Item
       className={cn(
-        "border-outline-variant text-ink-black focus-visible:ring-ring aspect-square size-5 rounded-full border transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-50",
+        "border-outline focus-visible:ring-ring grid size-4 place-items-center rounded-[2px] border-2 transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-50",
         className,
       )}
       {...props}
     >
-      <RadioGroupPrimitive.Indicator className="flex items-center justify-center">
-        <Circle className="fill-ink-black text-ink-black size-2.5" />
+      <RadioGroupPrimitive.Indicator>
+        <span className="bg-primary block size-2" />
       </RadioGroupPrimitive.Indicator>
     </RadioGroupPrimitive.Item>
   );

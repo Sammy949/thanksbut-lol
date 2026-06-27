@@ -5,21 +5,22 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 /**
- * Editorial button. Defaults to the design's primary action: a solid ink-black
- * pill with monospace label-caps text. Variants cover the secondary "ghost
- * outline" and the accent (rejection-red / salmon) used on success screens.
+ * Archive-board button: a heavy "stamp" box that depresses 2px when pressed.
+ * Monospace label-caps text, sharp corners. Variant/size/shape keys are kept
+ * stable so existing call sites compile during the redesign.
  */
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-mono text-label-caps tracking-[0.1em] uppercase transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 active:scale-95",
+  "btn-press inline-flex items-center justify-center gap-2 border font-mono text-label-caps tracking-[0.1em] uppercase whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0",
   {
     variants: {
       variant: {
         primary:
-          "bg-ink-black text-paper-white hover:-translate-y-0.5 hover:shadow-[0_10px_30px_rgba(0,0,0,0.15)]",
+          "bg-on-surface text-surface border-on-surface hover:bg-primary hover:border-primary",
+        accent: "bg-primary text-on-primary border-primary hover:opacity-90",
         secondary:
-          "border border-ink-black text-ink-black hover:bg-surface-container-low",
-        accent: "bg-primary text-on-primary hover:opacity-90",
-        ghost: "text-on-surface-variant hover:text-ink-black",
+          "bg-transparent text-on-surface border-on-surface hover:bg-surface-container-low",
+        ghost:
+          "border-transparent text-on-surface-variant shadow-none hover:text-primary hover:underline",
       },
       size: {
         sm: "h-9 px-4",
@@ -30,13 +31,13 @@ const buttonVariants = cva(
       },
       shape: {
         pill: "rounded-full",
-        sheet: "rounded-xl",
+        sheet: "rounded-[2px]",
       },
     },
     defaultVariants: {
       variant: "primary",
       size: "md",
-      shape: "pill",
+      shape: "sheet",
     },
   },
 );
