@@ -8,7 +8,6 @@ import { CATEGORY_LABELS } from "@/constants/categories";
 import type { Archive } from "@/types/archive";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { StampMark } from "@/components/archive/stamp-mark";
 
 interface ArchiveLightboxProps {
   archive: Archive | null;
@@ -29,13 +28,8 @@ export function ArchiveLightbox({
       <DialogContent className="max-w-2xl">
         {archive && (
           <div className="relative flex flex-col gap-5">
-            {archive.stamp && (
-              <StampMark
-                label={archive.stamp}
-                className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-[30px]"
-              />
-            )}
-
+            {/* No stamp here — the inspect view stays clean so the screenshot is
+                fully readable; stamps live on the board cards. */}
             <div className="border-outline-variant flex items-end justify-between gap-3 border-b border-dashed pr-8 pb-3">
               <DialogTitle>{archive.company ?? "Anonymous"}</DialogTitle>
               <Badge variant="square">{CATEGORY_LABELS[archive.category]}</Badge>

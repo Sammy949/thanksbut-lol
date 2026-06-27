@@ -23,6 +23,8 @@ interface ArchiveCardProps {
   onReact?: (id: string) => void;
   rotation?: number;
   decoration?: CardDecoration;
+  /** Decorative rubber stamp slapped across the card (assigned by the wall). */
+  stamp?: string;
 }
 
 /** A pinned-up "rejection letter" artifact: paper card, stamp, tape/pin. */
@@ -33,6 +35,7 @@ export function ArchiveCard({
   onReact,
   rotation = 0,
   decoration = "none",
+  stamp,
 }: ArchiveCardProps) {
   return (
     <article
@@ -47,10 +50,10 @@ export function ArchiveCard({
       )}
       {decoration === "clip" && <PaperClip className="top-[-16px] left-6 z-10" />}
 
-      {archive.stamp && (
+      {stamp && (
         <StampMark
-          label={archive.stamp}
-          className="absolute top-1/3 right-4 z-20 text-[20px]"
+          label={stamp}
+          className="absolute top-9 right-3 z-20 text-[22px]"
         />
       )}
 
