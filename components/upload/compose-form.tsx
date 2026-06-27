@@ -18,7 +18,10 @@ export type SubmissionFormApi = ReturnType<typeof useForm<SubmissionValues>>;
 interface ComposeFormProps {
   form: SubmissionFormApi;
   preview: string | null;
+  /** Remove the current image (and reset). */
   onPickImage: (file: File | undefined) => void;
+  /** A freshly chosen screenshot — opens the privacy editor before upload. */
+  onEditImage: (file: File) => void;
   showText: boolean;
   onRevealText: () => void;
 }
@@ -28,6 +31,7 @@ export function ComposeForm({
   form,
   preview,
   onPickImage,
+  onEditImage,
   showText,
   onRevealText,
 }: ComposeFormProps) {
@@ -69,9 +73,13 @@ export function ComposeForm({
             </div>
             <input
               type="file"
-              accept="image/png,image/jpeg"
+              accept="image/png,image/jpeg,image/webp"
               className="hidden"
-              onChange={(e) => onPickImage(e.target.files?.[0])}
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onEditImage(file);
+                e.target.value = "";
+              }}
             />
           </label>
         )}
