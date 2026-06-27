@@ -8,12 +8,14 @@ import { CATEGORY_LABELS } from "@/constants/categories";
 import type { Archive } from "@/types/archive";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
+import { ReactionButton } from "./reaction-button";
 
 interface ArchiveLightboxProps {
   archive: Archive | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onReport: (archive: Archive) => void;
+  onReact?: (id: string) => void;
 }
 
 /** Inspect view — the letter lifted off the wall and laid flat for reading. */
@@ -22,6 +24,7 @@ export function ArchiveLightbox({
   open,
   onOpenChange,
   onReport,
+  onReact,
 }: ArchiveLightboxProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -76,10 +79,14 @@ export function ArchiveLightbox({
                   <Flag className="size-4" />
                   <span className="text-label-caps font-mono uppercase">Report</span>
                 </button>
-                <span className="text-on-surface flex items-center gap-1.5 font-mono font-bold">
-                  <span className="text-base leading-none">🥲</span>
-                  {archive.reactions}
-                </span>
+                <ReactionButton
+                  key={archive.id}
+                  count={archive.reactions}
+                  reacted={archive.reacted}
+                  optimistic
+                  onToggle={onReact ? () => onReact(archive.id) : undefined}
+                  className="gap-1.5 text-sm"
+                />
               </div>
             </div>
           </div>

@@ -123,6 +123,7 @@ export function ArchiveFeed({
         archive={active}
         open={lightboxOpen}
         onOpenChange={setLightboxOpen}
+        onReact={onReact}
         onReport={(archive) => {
           setLightboxOpen(false);
           handleReport(archive);
