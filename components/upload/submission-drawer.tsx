@@ -296,10 +296,14 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 <Loader2 className="text-primary size-10 animate-spin" />
                 <div>
                   <p className="text-headline-sm text-on-surface font-display">
-                    Archiving…
+                    {uploadState === "uploading"
+                      ? "Uploading screenshot…"
+                      : "Archiving…"}
                   </p>
                   <p className="text-code-snippet text-on-surface-variant font-mono mt-1">
-                    Uploading your screenshot and filing it for the culture.
+                    {uploadState === "uploading"
+                      ? "Big screenshots can take a few seconds."
+                      : "Filing it for the culture."}
                   </p>
                 </div>
               </div>
