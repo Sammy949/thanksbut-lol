@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { X, ArrowRight } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { generateArchiveId } from "@/lib/id";
+import { useCreateArchive } from "@/hooks/use-create-archive";
 import { submissionSchema, type SubmissionValues } from "@/lib/submission-schema";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -37,6 +37,9 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
   const [preview, setPreview] = React.useState<string | null>(null);
   const [archivedId, setArchivedId] = React.useState<string | null>(null);
   const [editingFile, setEditingFile] = React.useState<File | null>(null);
+  const [submitting, setSubmitting] = React.useState(false);
+
+  const createArchive = useCreateArchive();
 
   const form = useForm<SubmissionValues>({
     resolver: zodResolver(submissionSchema),
@@ -70,9 +73,25 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
     form.setValue("image", file, { shouldValidate: true });
   };
 
-  const onSubmit = () => {
-    // UI phase: no real upload. Simulate archiving and show the success state.
-    setArchivedId(generateArchiveId());
+  const onSubmit = async (data: SubmissionValues) => {
+    setSubmitting(true);
+    try {
+      const { id } = await createArchive({
+        category: data.category,
+        file: data.image,
+        text: data.text || undefined,
+        company: data.company || undefined,
+        caption: data.caption || undefined,
+        displayName: data.displayName || undefined,
+      });
+      setArchivedId(id);
+    } catch (err) {
+      toast.error("Couldn't archive that", {
+        description: err instanceof Error ? err.message : "Please try again.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -158,10 +177,17 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                   <Button
                     shape="sheet"
                     className="w-full"
+                    disabled={submitting}
                     onClick={form.handleSubmit(onSubmit)}
                   >
-                    Archive Yours
-                    <ArrowRight className="size-4" />
+                    {submitting ? (
+                      "Archiving…"
+                    ) : (
+                      <>
+                        Archive Yours
+                        <ArrowRight className="size-4" />
+                      </>
+                    )}
                   </Button>
                 </div>
               </>
