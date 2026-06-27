@@ -54,12 +54,12 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${garamond.variable} ${spaceMono.variable} h-full antialiased`}
+      className={`${garamond.variable} ${spaceMono.variable} h-full overflow-x-clip antialiased`}
     >
-      <body className="font-body bg-paper-grain flex min-h-full flex-col overflow-x-hidden">
+      <body className="font-body bg-paper-grain flex min-h-full flex-col overflow-x-clip">
         <Providers>
           <Navbar />
-          <main className="flex-1">{children}</main>
+          <main className="min-w-0 flex-1">{children}</main>
           <SiteFooter />
         </Providers>
         <Toaster />

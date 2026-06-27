@@ -12,7 +12,7 @@ export function Navbar() {
   const { openDrawer } = useSubmissionDrawer();
 
   return (
-    <header className="bg-surface/90 border-outline-variant sticky top-0 z-50 border-b backdrop-blur-sm">
+    <header className="bg-surface border-outline-variant sticky top-0 z-50 border-b md:bg-surface/90 md:backdrop-blur-sm">
       <nav className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between gap-2 px-5 md:px-16">
         <Link
           href="/"

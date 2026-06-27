@@ -195,7 +195,8 @@
   /* Subtle paper grain over the whole page. */
   .bg-paper-grain {
     background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/></svg>");
-    background-attachment: fixed;
+    /* NB: no `background-attachment: fixed` — it forces a full repaint every
+       scroll frame and tanks mobile scrolling. The grain scrolls with content. */
   }
 
   .no-scrollbar::-webkit-scrollbar {
