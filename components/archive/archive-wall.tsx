@@ -5,6 +5,7 @@ interface ArchiveWallProps {
   archives: Archive[];
   onOpen: (archive: Archive) => void;
   onReport: (archive: Archive) => void;
+  onReact?: (id: string) => void;
 }
 
 // Deterministic scatter so the board feels hand-pinned but stays dynamic.
@@ -24,7 +25,12 @@ const DECORATIONS: CardDecoration[] = [
  * The evidence board: a rotated paper masonry (CSS columns) that reads as
  * scattered pinned-up letters but scrolls naturally and works with any count.
  */
-export function ArchiveWall({ archives, onOpen, onReport }: ArchiveWallProps) {
+export function ArchiveWall({
+  archives,
+  onOpen,
+  onReport,
+  onReact,
+}: ArchiveWallProps) {
   return (
     <div className="mx-auto max-w-[1120px] columns-1 gap-x-8 px-5 sm:columns-2 md:px-16 lg:columns-3">
       {archives.map((archive, i) => (
@@ -33,6 +39,7 @@ export function ArchiveWall({ archives, onOpen, onReport }: ArchiveWallProps) {
             archive={archive}
             onOpen={onOpen}
             onReport={onReport}
+            onReact={onReact}
             rotation={ROTATIONS[i % ROTATIONS.length]}
             decoration={DECORATIONS[i % DECORATIONS.length]}
           />

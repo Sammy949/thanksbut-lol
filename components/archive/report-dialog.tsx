@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import type { ReportReason } from "@/types/report";
 
 const REASONS = [
   { value: "spam", label: "Spam" },
@@ -25,13 +26,16 @@ const REASONS = [
 interface ReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Live mode: persist the report. When omitted, the dialog only toasts. */
+  onSubmit?: (reason: ReportReason) => void;
 }
 
 /** "What is wrong with this submission?" — the report flow from the mockups. */
-export function ReportDialog({ open, onOpenChange }: ReportDialogProps) {
+export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps) {
   const [reason, setReason] = React.useState<string>("");
 
   const handleSubmit = () => {
+    if (reason) onSubmit?.(reason as ReportReason);
     onOpenChange(false);
     setReason("");
     toast.success("Report received", {

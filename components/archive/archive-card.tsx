@@ -19,6 +19,8 @@ interface ArchiveCardProps {
   archive: Archive;
   onOpen: (archive: Archive) => void;
   onReport: (archive: Archive) => void;
+  /** Live 🥲 toggle. When omitted the reaction button stays locally optimistic. */
+  onReact?: (id: string) => void;
   rotation?: number;
   decoration?: CardDecoration;
 }
@@ -28,6 +30,7 @@ export function ArchiveCard({
   archive,
   onOpen,
   onReport,
+  onReact,
   rotation = 0,
   decoration = "none",
 }: ArchiveCardProps) {
@@ -113,7 +116,11 @@ export function ArchiveCard({
             </TooltipTrigger>
             <TooltipContent>Report</TooltipContent>
           </Tooltip>
-          <ReactionButton count={archive.reactions} />
+          <ReactionButton
+            count={archive.reactions}
+            reacted={archive.reacted}
+            onToggle={onReact ? () => onReact(archive.id) : undefined}
+          />
         </div>
       </div>
     </article>
