@@ -40,6 +40,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
   const [archivedId, setArchivedId] = React.useState<string | null>(null);
   const [editingFile, setEditingFile] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [slowArchive, setSlowArchive] = React.useState(false);
   const [uploadState, setUploadState] = React.useState<
     "idle" | "uploading" | "done" | "error"
   >("idle");
@@ -111,6 +112,10 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
 
   const onSubmit = async (data: SubmissionValues) => {
     setSubmitting(true);
+    setSlowArchive(false);
+    // If the round-trip drags (cold/distant Convex socket), reassure rather than
+    // look frozen. Convex will still complete the mutation when it reconnects.
+    const slowTimer = setTimeout(() => setSlowArchive(true), 7000);
     try {
       let image: ArchiveImage | undefined;
       if (data.image) {
@@ -142,6 +147,8 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
             : "Please try again.";
       toast.error("Couldn't archive that", { description });
     } finally {
+      clearTimeout(slowTimer);
+      setSlowArchive(false);
       setSubmitting(false);
     }
   };
@@ -303,7 +310,9 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                   <p className="text-code-snippet text-on-surface-variant font-mono mt-1">
                     {uploadState === "uploading"
                       ? "Big screenshots can take a few seconds."
-                      : "Filing it for the culture."}
+                      : slowArchive
+                        ? "Taking longer than usual — waking the server. Hang tight, it'll go through."
+                        : "Filing it for the culture."}
                   </p>
                 </div>
               </div>
@@ -319,10 +328,10 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 onComplete={(processed) => {
                   onPickImage(processed);
                   setEditingFile(null);
-                  setTab("preview");
+                  setTab("compose"); // back to compose so they can add a detail or two
                   beginUpload(processed); // eager: start uploading in the background
                   toast.success("Screenshot ready", {
-                    description: "Cropped and redacted. Review, then archive it.",
+                    description: "Add a detail or two, then archive it.",
                   });
                 }}
               />
