@@ -56,7 +56,7 @@ export default function RootLayout({
       suppressHydrationWarning
       className={`${garamond.variable} ${spaceMono.variable} h-full antialiased`}
     >
-      <body className="font-body bg-paper-grain flex min-h-full flex-col">
+      <body className="font-body bg-paper-grain flex min-h-full flex-col overflow-x-hidden">
         <Providers>
           <Navbar />
           <main className="flex-1">{children}</main>

@@ -13,15 +13,15 @@ export function Navbar() {
 
   return (
     <header className="bg-surface/90 border-outline-variant sticky top-0 z-50 border-b backdrop-blur-sm">
-      <nav className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between px-5 md:px-16">
+      <nav className="mx-auto flex h-16 w-full max-w-[1120px] items-center justify-between gap-2 px-5 md:px-16">
         <Link
           href="/"
-          className="text-primary font-mono text-[20px] font-bold tracking-[0.15em] uppercase"
+          className="text-primary shrink-0 font-mono text-[15px] font-bold tracking-[0.1em] uppercase sm:text-[20px] sm:tracking-[0.15em]"
         >
           {SITE.name}
         </Link>
 
-        <div className="flex items-center gap-4 md:gap-6">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4 md:gap-6">
           <Link
             href="/"
             className="text-primary border-primary text-label-caps hidden border-b-2 pb-1 font-mono uppercase md:inline-block"
@@ -30,7 +30,8 @@ export function Navbar() {
           </Link>
           <ThemeToggle />
           <Button size="pill" onClick={openDrawer}>
-            Archive Yours
+            <span className="sm:hidden">Archive</span>
+            <span className="hidden sm:inline">Archive Yours</span>
           </Button>
         </div>
       </nav>

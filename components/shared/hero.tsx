@@ -13,14 +13,14 @@ export function Hero({ count }: { count: number }) {
   const { openDrawer } = useSubmissionDrawer();
 
   return (
-    <section className="relative mx-auto flex max-w-[1120px] flex-col items-center px-5 py-16 text-center md:px-16 md:py-24">
+    <section className="relative mx-auto flex max-w-[1120px] flex-col items-center px-5 py-12 text-center md:px-16 md:py-24">
       <StampMark
         label="ARCHIVED"
-        className="absolute top-8 left-[12%] rotate-[-12deg] text-[20px] opacity-25"
+        className="absolute top-8 left-[6%] hidden rotate-[-12deg] text-[20px] opacity-25 sm:block md:left-[12%]"
       />
       <StampMark
         label="REJECTED"
-        className="absolute top-20 right-[14%] rotate-[14deg] text-[24px] opacity-30"
+        className="absolute top-20 right-[6%] hidden rotate-[14deg] text-[24px] opacity-30 sm:block md:right-[14%]"
       />
       <StampMark
         label="VOID"
