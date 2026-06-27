@@ -35,8 +35,20 @@ const ASPECTS: { label: string; value: number }[] = [
  * pointer behaviour.
  */
 export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
-  const url = React.useMemo(() => URL.createObjectURL(file), [file]);
-  React.useEffect(() => () => URL.revokeObjectURL(url), [url]);
+  // Create + revoke the object URL in one effect so its lifecycle matches the
+  // effect's. (Creating it in useMemo and revoking in a separate effect breaks
+  // under React StrictMode: the dev double-invoke revokes the still-in-use URL,
+  // leaving the cropper pointed at a dead blob → blank image.)
+  const [url, setUrl] = React.useState<string | null>(null);
+  React.useEffect(() => {
+    const objectUrl = URL.createObjectURL(file);
+    // Setting state here is the point: under StrictMode the second setup creates
+    // a fresh URL and re-renders with it, so the cropper never sees a revoked
+    // blob. Creating it during render (useMemo/lazy state) reintroduces the bug.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setUrl(objectUrl);
+    return () => URL.revokeObjectURL(objectUrl);
+  }, [file]);
 
   const [stage, setStage] = React.useState<"crop" | "redact">("crop");
   const [crop, setCrop] = React.useState({ x: 0, y: 0 });
@@ -54,7 +66,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
   const selected = redactions.find((r) => r.id === selectedId) ?? null;
 
   const goToRedact = async () => {
-    if (!areaPixels) return;
+    if (!areaPixels || !url) return;
     setBusy(true);
     try {
       const canvas = await getCroppedCanvas(url, areaPixels, rotation);
@@ -89,6 +101,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
       <div className="bg-surface-container-lowest relative flex min-h-0 flex-1 items-center justify-center overflow-hidden p-4">
         {stage === "crop" ? (
           <div className="relative h-full min-h-[50vh] w-full">
+            {url && (
             <Cropper
               image={url}
               crop={crop}
@@ -101,6 +114,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
               onCropComplete={(_, px) => setAreaPixels(px)}
               showGrid={false}
             />
+            )}
           </div>
         ) : (
           croppedUrl && (
