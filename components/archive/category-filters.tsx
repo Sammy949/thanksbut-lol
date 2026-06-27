@@ -21,13 +21,13 @@ export function CategoryFilters({ value, onChange }: CategoryFiltersProps) {
         onValueChange={(v) => {
           if (v) onChange(v === ALL ? null : (v as ArchiveCategory));
         }}
-        className="border-outline-variant flex min-w-max gap-2 border-b"
+        className="border-outline-variant flex w-max gap-2 border-b"
       >
         {CATEGORY_FILTERS.map((filter) => (
           <ToggleGroupItem
             key={filter.label}
             value={filter.value ?? ALL}
-            className="text-label-caps text-secondary hover:text-on-surface data-[state=on]:text-primary data-[state=on]:border-primary -mb-px border-b-2 border-transparent px-3 pb-2 font-mono uppercase"
+            className="text-label-caps text-secondary hover:text-on-surface data-[state=on]:text-primary data-[state=on]:border-primary -mb-px shrink-0 border-b-2 border-transparent px-3 pb-2 font-mono whitespace-nowrap uppercase"
           >
             {filter.label}
           </ToggleGroupItem>
