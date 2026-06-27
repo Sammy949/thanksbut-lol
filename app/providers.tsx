@@ -8,26 +8,28 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { SubmissionProvider } from "@/components/upload/submission-provider";
 
 /**
- * Convex client is created only when a deployment URL is configured.
- * The backend isn't built yet, so the app must run fine without it —
- * when NEXT_PUBLIC_CONVEX_URL is absent we simply skip the ConvexProvider.
+ * Always mount a ConvexProvider. Convex hooks live in always-rendered components
+ * (e.g. the submission drawer's `useMutation`), so a missing provider would
+ * crash prerender whenever NEXT_PUBLIC_CONVEX_URL isn't set at build time. The
+ * placeholder keeps the client valid without connecting; live reads stay gated
+ * on the real URL (see ArchiveBoard), so no URL simply means the mock wall.
  */
 const convexUrl = process.env.NEXT_PUBLIC_CONVEX_URL;
-const convex = convexUrl ? new ConvexReactClient(convexUrl) : null;
+const convex = new ConvexReactClient(convexUrl || "https://placeholder.convex.cloud");
 
 export function Providers({ children }: { children: ReactNode }) {
-  const themed = (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="system"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <TooltipProvider delayDuration={200}>
-        <SubmissionProvider>{children}</SubmissionProvider>
-      </TooltipProvider>
-    </ThemeProvider>
+  return (
+    <ConvexProvider client={convex}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <TooltipProvider delayDuration={200}>
+          <SubmissionProvider>{children}</SubmissionProvider>
+        </TooltipProvider>
+      </ThemeProvider>
+    </ConvexProvider>
   );
-
-  return convex ? <ConvexProvider client={convex}>{themed}</ConvexProvider> : themed;
 }
