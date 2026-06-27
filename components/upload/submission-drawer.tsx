@@ -223,23 +223,27 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 </div>
               </>
             )}
+
+            {/* Rendered INSIDE the dialog content (it's `fixed inset-0`, so it
+                still fills the screen) so it lives in the dialog's focus scope —
+                otherwise Radix's focus trap makes the editor inert. */}
+            {editingFile && (
+              <ImageEditor
+                file={editingFile}
+                onCancel={() => setEditingFile(null)}
+                onComplete={(processed) => {
+                  onPickImage(processed);
+                  setEditingFile(null);
+                  setTab("preview");
+                  toast.success("Screenshot ready", {
+                    description: "Cropped and redacted. Review, then archive it.",
+                  });
+                }}
+              />
+            )}
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
-
-      {editingFile && (
-        <ImageEditor
-          file={editingFile}
-          onCancel={() => setEditingFile(null)}
-          onComplete={(processed) => {
-            onPickImage(processed);
-            setEditingFile(null);
-            toast.success("Screenshot ready", {
-              description: "Cropped and redacted. Review, then archive it.",
-            });
-          }}
-        />
-      )}
     </>
   );
 }
