@@ -30,6 +30,7 @@ export const metadata: Metadata = {
   },
   description: SITE.description,
   metadataBase: new URL(SITE.url),
+  icons: { icon: "/api/favicon" },
   openGraph: {
     title: `${SITE.tagline} — ${SITE.name}`,
     description: SITE.description,

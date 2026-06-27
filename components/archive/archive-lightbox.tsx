@@ -32,7 +32,7 @@ export function ArchiveLightbox({
             {archive.stamp && (
               <StampMark
                 label={archive.stamp}
-                className="absolute top-0 right-10 z-20 text-[22px]"
+                className="absolute top-1/2 left-1/2 z-20 -translate-x-1/2 -translate-y-1/2 text-[30px]"
               />
             )}
 
