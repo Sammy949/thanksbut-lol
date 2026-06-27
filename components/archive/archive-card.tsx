@@ -1,5 +1,6 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import { Eye, Flag } from "lucide-react";
 
@@ -25,6 +26,8 @@ interface ArchiveCardProps {
   decoration?: CardDecoration;
   /** Decorative rubber stamp slapped across the card (assigned by the wall). */
   stamp?: string;
+  /** Position + rotation for the stamp, so it scatters instead of being uniform. */
+  stampStyle?: CSSProperties;
 }
 
 /** A pinned-up "rejection letter" artifact: paper card, stamp, tape/pin. */
@@ -36,6 +39,7 @@ export function ArchiveCard({
   rotation = 0,
   decoration = "none",
   stamp,
+  stampStyle,
 }: ArchiveCardProps) {
   return (
     <article
@@ -51,10 +55,7 @@ export function ArchiveCard({
       {decoration === "clip" && <PaperClip className="top-[-16px] left-6 z-10" />}
 
       {stamp && (
-        <StampMark
-          label={stamp}
-          className="absolute top-9 right-3 z-20 text-[22px]"
-        />
+        <StampMark label={stamp} style={stampStyle} className="absolute z-20 text-[22px]" />
       )}
 
       {/* Letterhead */}

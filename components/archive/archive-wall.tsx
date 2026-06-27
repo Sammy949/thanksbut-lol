@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import type { Archive } from "@/types/archive";
 import { ArchiveCard, type CardDecoration } from "./archive-card";
 
@@ -22,6 +24,17 @@ const STAMPS = [
 ];
 const DECORATIONS: CardDecoration[] = ["pin", "tape", "clip", "none"];
 const MAX_TILT = 4; // degrees, both directions — relatively random, never extreme
+
+// Scattered spots for the stamp so it isn't slapped in the same corner of every
+// card. Each is a CSS position; rotation is layered on per-card.
+const STAMP_SPOTS: CSSProperties[] = [
+  { top: "8%", right: "8%" },
+  { top: "16%", left: "6%" },
+  { top: "42%", right: "7%" },
+  { bottom: "24%", left: "8%" },
+  { top: "10%", left: "32%" },
+  { bottom: "30%", right: "10%" },
+];
 
 /** Stable hash so a card's stamp/tilt/pin are deterministic (no SSR mismatch). */
 function hashId(seed: string): number {
@@ -51,6 +64,12 @@ export function ArchiveWall({
         const decoration = DECORATIONS[hashId(archive.id + "deco") % DECORATIONS.length];
         // Continuous tilt in [-MAX_TILT, +MAX_TILT), decorrelated from the stamp.
         const rotation = (hashId(archive.id + "tilt") % 800) / 100 - MAX_TILT;
+        // Scatter the stamp: a random spot + its own random rotation (-18°..+17°).
+        const spot = STAMP_SPOTS[hashId(archive.id + "spot") % STAMP_SPOTS.length];
+        const stampStyle: CSSProperties = {
+          ...spot,
+          transform: `rotate(${(hashId(archive.id + "srot") % 36) - 18}deg)`,
+        };
 
         return (
           <div key={archive.id} className="mb-10 break-inside-avoid">
@@ -62,6 +81,7 @@ export function ArchiveWall({
               rotation={rotation}
               decoration={decoration}
               stamp={stamp}
+              stampStyle={stampStyle}
             />
           </div>
         );
