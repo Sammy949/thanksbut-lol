@@ -5,54 +5,43 @@ import { useMutation } from "convex/react";
 import { api } from "@/lib/convex-api";
 import { useUploadThing } from "@/lib/uploadthing";
 import { getImageDimensions, generateBlurDataUrl } from "@/lib/image";
-import type { ArchiveCategory, ArchiveImage } from "@/types/archive";
-
-export interface CreateArchiveArgs {
-  category: ArchiveCategory;
-  /** Optional screenshot — uploaded to UploadThing, then persisted. */
-  file?: File;
-  text?: string;
-  company?: string;
-  caption?: string;
-  displayName?: string;
-}
+import type { ArchiveImage } from "@/types/archive";
 
 /**
- * End-to-end submission: upload the screenshot (measuring dimensions + a blur
- * placeholder in parallel), then create the archive. Returns the new id +
- * manage token.
+ * Submission primitives, split so the screenshot can be uploaded eagerly (in the
+ * background, right after the editor) and the archive created later — instead of
+ * doing both on the final tap. `uploadImage` resolves to the persisted image
+ * payload; `createArchive` is the Convex mutation.
  */
-export function useCreateArchive() {
-  const create = useMutation(api.archives.create);
+export function useArchiveSubmission() {
+  const createArchive = useMutation(api.archives.create);
   const { startUpload } = useUploadThing("archiveImage");
 
-  return async ({ file, ...rest }: CreateArchiveArgs) => {
-    let image: ArchiveImage | undefined;
+  const uploadImage = async (file: File): Promise<ArchiveImage> => {
+    const [dims, blurDataUrl, uploaded] = await Promise.all([
+      getImageDimensions(file).catch(() => undefined),
+      generateBlurDataUrl(file).catch(() => null),
+      startUpload([file]),
+    ]);
 
-    if (file) {
-      const [dims, blurDataUrl, uploaded] = await Promise.all([
-        getImageDimensions(file).catch(() => undefined),
-        generateBlurDataUrl(file).catch(() => null),
-        startUpload([file]),
-      ]);
+    const result = uploaded?.[0];
+    if (!result) throw new Error("Upload failed — no file came back from UploadThing.");
 
-      const result = uploaded?.[0];
-      if (!result) throw new Error("Image upload failed.");
+    const url = result.ufsUrl ?? result.url ?? result.serverData?.url;
+    if (!url) throw new Error("Upload finished but returned no file URL.");
 
-      // Only include optional fields when defined — Convex rejects objects that
-      // carry explicit `undefined` values.
-      image = {
-        url: result.serverData.url,
-        key: result.serverData.key,
-        name: result.serverData.name,
-        size: result.serverData.size,
-        type: result.serverData.type,
-        ...(dims?.width ? { width: dims.width } : {}),
-        ...(dims?.height ? { height: dims.height } : {}),
-        ...(blurDataUrl ? { blurDataUrl } : {}),
-      };
-    }
-
-    return create({ ...rest, image });
+    // Only include optional fields when defined — Convex rejects explicit undefined.
+    return {
+      url,
+      key: result.key,
+      name: result.name,
+      size: result.size,
+      type: result.type,
+      ...(dims?.width ? { width: dims.width } : {}),
+      ...(dims?.height ? { height: dims.height } : {}),
+      ...(blurDataUrl ? { blurDataUrl } : {}),
+    };
   };
+
+  return { uploadImage, createArchive };
 }

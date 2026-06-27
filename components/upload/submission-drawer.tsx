@@ -9,8 +9,9 @@ import { ConvexError } from "convex/values";
 import { X, ArrowRight, Loader2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { useCreateArchive } from "@/hooks/use-create-archive";
+import { useArchiveSubmission } from "@/hooks/use-create-archive";
 import { submissionSchema, type SubmissionValues } from "@/lib/submission-schema";
+import type { ArchiveImage } from "@/types/archive";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ComposeForm } from "./compose-form";
@@ -39,8 +40,35 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
   const [archivedId, setArchivedId] = React.useState<string | null>(null);
   const [editingFile, setEditingFile] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
+  const [uploadState, setUploadState] = React.useState<
+    "idle" | "uploading" | "done" | "error"
+  >("idle");
 
-  const createArchive = useCreateArchive();
+  const { uploadImage, createArchive } = useArchiveSubmission();
+  // Eager upload: the in-flight (or finished) upload for the current screenshot,
+  // keyed by the exact File so we can reuse it at submit time instead of
+  // re-uploading. Cleared/reset when the image changes or fails.
+  const uploadRef = React.useRef<{
+    file: File;
+    promise: Promise<ArchiveImage>;
+  } | null>(null);
+
+  const beginUpload = React.useCallback(
+    (file: File) => {
+      setUploadState("uploading");
+      const promise = uploadImage(file);
+      uploadRef.current = { file, promise };
+      promise.then(
+        () => setUploadState("done"),
+        () => {
+          setUploadState("error");
+          // Drop the failed upload so the next submit re-uploads cleanly.
+          if (uploadRef.current?.file === file) uploadRef.current = null;
+        },
+      );
+    },
+    [uploadImage],
+  );
 
   const form = useForm<SubmissionValues>({
     resolver: zodResolver(submissionSchema),
@@ -59,6 +87,8 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
       return null;
     });
     setArchivedId(null);
+    uploadRef.current = null;
+    setUploadState("idle");
   }, [form]);
 
   const handleOpenChange = (next: boolean) => {
@@ -72,18 +102,32 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
       return file ? URL.createObjectURL(file) : null;
     });
     form.setValue("image", file, { shouldValidate: true });
+    // Removing the screenshot invalidates any eager upload in flight.
+    if (!file) {
+      uploadRef.current = null;
+      setUploadState("idle");
+    }
   };
 
   const onSubmit = async (data: SubmissionValues) => {
     setSubmitting(true);
     try {
+      let image: ArchiveImage | undefined;
+      if (data.image) {
+        // Reuse the in-flight eager upload when it matches; else upload now.
+        image =
+          uploadRef.current?.file === data.image
+            ? await uploadRef.current.promise
+            : await uploadImage(data.image);
+      }
+
       const { id } = await createArchive({
         category: data.category,
-        file: data.image,
-        text: data.text || undefined,
-        company: data.company || undefined,
-        caption: data.caption || undefined,
-        displayName: data.displayName || undefined,
+        ...(image ? { image } : {}),
+        ...(data.text ? { text: data.text } : {}),
+        ...(data.company ? { company: data.company } : {}),
+        ...(data.caption ? { caption: data.caption } : {}),
+        ...(data.displayName ? { displayName: data.displayName } : {}),
       });
       setArchivedId(id);
       toast.success("Archived for the culture", {
@@ -197,16 +241,36 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 </Tabs>
 
                 <div className="border-outline-variant border-t p-5">
+                  {values.image && uploadState !== "idle" && (
+                    <p className="text-code-snippet font-mono mb-3 flex items-center justify-center gap-1.5 text-center">
+                      {uploadState === "uploading" && (
+                        <span className="text-secondary inline-flex items-center gap-1.5">
+                          <Loader2 className="size-3.5 animate-spin" />
+                          Uploading screenshot…
+                        </span>
+                      )}
+                      {uploadState === "done" && (
+                        <span className="text-primary">Screenshot uploaded ✓</span>
+                      )}
+                      {uploadState === "error" && (
+                        <span className="text-secondary">
+                          Upload will retry when you archive.
+                        </span>
+                      )}
+                    </p>
+                  )}
                   <Button
                     shape="sheet"
                     className="w-full"
                     disabled={submitting}
-                    onClick={form.handleSubmit(onSubmit, () =>
-                      toast.error("Almost there", {
-                        description:
-                          "Add a screenshot or some rejection text first.",
-                      }),
-                    )}
+                    onClick={() =>
+                      form.handleSubmit(onSubmit, () =>
+                        toast.error("Almost there", {
+                          description:
+                            "Add a screenshot or some rejection text first.",
+                        }),
+                      )()
+                    }
                   >
                     {submitting ? (
                       <>
@@ -252,6 +316,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                   onPickImage(processed);
                   setEditingFile(null);
                   setTab("preview");
+                  beginUpload(processed); // eager: start uploading in the background
                   toast.success("Screenshot ready", {
                     description: "Cropped and redacted. Review, then archive it.",
                   });
