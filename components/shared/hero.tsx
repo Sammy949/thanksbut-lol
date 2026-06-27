@@ -13,18 +13,18 @@ export function Hero({ count }: { count: number }) {
   const { openDrawer } = useSubmissionDrawer();
 
   return (
-    <section className="relative mx-auto flex max-w-[1120px] flex-col items-center px-5 py-16 text-center md:px-16 md:py-24">
+    <section className="relative mx-auto flex max-w-[1120px] flex-col items-center px-5 py-12 text-center md:px-16 md:py-24">
       <StampMark
         label="ARCHIVED"
-        className="absolute top-8 left-[12%] rotate-[-12deg] text-[20px] opacity-25"
+        className="absolute top-8 left-[6%] hidden rotate-[-12deg] text-[20px] opacity-25 sm:block md:left-[12%]"
       />
       <StampMark
         label="REJECTED"
-        className="absolute top-20 right-[14%] rotate-[14deg] text-[24px] opacity-30"
+        className="absolute top-20 right-[6%] hidden rotate-[14deg] text-[24px] opacity-30 sm:block md:right-[14%]"
       />
       <StampMark
         label="VOID"
-        className="absolute bottom-10 left-[6%] rotate-[6deg] text-[18px] opacity-20"
+        className="absolute right-3 bottom-2 rotate-[6deg] text-[11px] opacity-20 sm:right-auto sm:bottom-10 sm:left-[6%] sm:text-[18px]"
       />
       <StampMark
         label="CLASSIFIED"

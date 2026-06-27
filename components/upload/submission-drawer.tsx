@@ -223,23 +223,44 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 </div>
               </>
             )}
+
+            {/* Uploading overlay — blocks the form and shows clear progress so
+                the upload+archive round-trip never feels broken or lets the user
+                double-submit. */}
+            {submitting && (
+              <div className="bg-surface-container-lowest/95 absolute inset-0 z-30 flex flex-col items-center justify-center gap-4 px-8 text-center backdrop-blur-sm">
+                <Loader2 className="text-primary size-10 animate-spin" />
+                <div>
+                  <p className="text-headline-sm text-on-surface font-display">
+                    Archiving…
+                  </p>
+                  <p className="text-code-snippet text-on-surface-variant font-mono mt-1">
+                    Uploading your screenshot and filing it for the culture.
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Rendered INSIDE the dialog content (it's `fixed inset-0`, so it
+                still fills the screen) so it lives in the dialog's focus scope —
+                otherwise Radix's focus trap makes the editor inert. */}
+            {editingFile && (
+              <ImageEditor
+                file={editingFile}
+                onCancel={() => setEditingFile(null)}
+                onComplete={(processed) => {
+                  onPickImage(processed);
+                  setEditingFile(null);
+                  setTab("preview");
+                  toast.success("Screenshot ready", {
+                    description: "Cropped and redacted. Review, then archive it.",
+                  });
+                }}
+              />
+            )}
           </DialogPrimitive.Content>
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
-
-      {editingFile && (
-        <ImageEditor
-          file={editingFile}
-          onCancel={() => setEditingFile(null)}
-          onComplete={(processed) => {
-            onPickImage(processed);
-            setEditingFile(null);
-            toast.success("Screenshot ready", {
-              description: "Cropped and redacted. Review, then archive it.",
-            });
-          }}
-        />
-      )}
     </>
   );
 }

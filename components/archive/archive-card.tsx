@@ -59,10 +59,12 @@ export function ArchiveCard({
 
       {/* Letterhead */}
       <div className="border-outline-variant mb-3 flex items-end justify-between gap-2 border-b border-dashed pb-2">
-        <span className="text-on-surface font-mono text-sm font-bold">
+        <span className="text-on-surface min-w-0 truncate font-mono text-sm font-bold">
           {archive.company ?? "Anonymous"}
         </span>
-        <Badge variant="square">{CATEGORY_LABELS[archive.category]}</Badge>
+        <Badge variant="square" className="shrink-0">
+          {CATEGORY_LABELS[archive.category]}
+        </Badge>
       </div>
 
       {/* Body — screenshot or typed letter (click to inspect) */}
