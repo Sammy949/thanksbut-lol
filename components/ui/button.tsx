@@ -30,8 +30,8 @@ const buttonVariants = cva(
         icon: "size-10",
       },
       shape: {
-        pill: "rounded-full",
-        sheet: "rounded-[2px]",
+        pill: "rounded-none",
+        sheet: "rounded-none",
       },
     },
     defaultVariants: {

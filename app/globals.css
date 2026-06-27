@@ -55,7 +55,7 @@
   --input: var(--outline-variant);
   --ring: var(--outline);
 
-  --radius: 0.25rem;
+  --radius: 0;
 }
 
 .dark {
@@ -175,11 +175,12 @@
   --text-label-caps--letter-spacing: 0.1em;
   --text-label-caps--font-weight: 700;
 
-  /* Sharp shape language */
-  --radius-sm: 0.125rem;
-  --radius: 0.25rem;
-  --radius-md: 0.375rem;
-  --radius-lg: 0.5rem;
+  /* Sharp shape language — everything is square-cornered. */
+  --radius-sm: 0;
+  --radius: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
 
   --container-archive: 1120px;
 }

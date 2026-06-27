@@ -165,7 +165,7 @@ export function RedactionEditor({
             {selected && (
               <span
                 onPointerDown={(e) => startResize(e, r)}
-                className="bg-primary absolute -right-1.5 -bottom-1.5 size-3 cursor-se-resize rounded-[1px]"
+                className="bg-primary absolute -right-1.5 -bottom-1.5 size-3 cursor-se-resize rounded-none"
               />
             )}
           </div>

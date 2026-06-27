@@ -22,7 +22,7 @@ function RadioGroupItem({
   return (
     <RadioGroupPrimitive.Item
       className={cn(
-        "border-outline focus-visible:ring-ring grid size-4 place-items-center rounded-[2px] border-2 transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-50",
+        "border-outline focus-visible:ring-ring grid size-4 place-items-center rounded-none border-2 transition-colors focus:outline-none focus-visible:ring-2 disabled:opacity-50",
         className,
       )}
       {...props}

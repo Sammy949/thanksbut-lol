@@ -19,7 +19,7 @@ export function ArtifactPreview({
       <p className="text-label-caps text-secondary font-body text-center uppercase">
         Artifact Preview
       </p>
-      <article className="bg-surface border-outline-variant flex flex-col gap-4 rounded-xl border p-6">
+      <article className="bg-surface border-outline-variant flex flex-col gap-4 rounded-none border p-6">
         <div className="flex items-start justify-between gap-3">
           <span className="text-headline-md text-on-surface font-display">
             {values.company || "Anonymous"}
@@ -27,7 +27,7 @@ export function ArtifactPreview({
           <Badge variant="outline">{CATEGORY_LABELS[values.category]}</Badge>
         </div>
         {preview && (
-          <div className="bg-surface-variant relative aspect-[4/3] w-full overflow-hidden rounded-lg">
+          <div className="bg-surface-variant relative aspect-[4/3] w-full overflow-hidden rounded-none">
             <Image src={preview} alt="" fill className="object-cover grayscale" />
           </div>
         )}

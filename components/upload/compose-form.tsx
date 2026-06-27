@@ -43,7 +43,7 @@ export function ComposeForm({
       {/* Image dropzone — primary */}
       <div className="flex flex-col gap-2">
         {preview ? (
-          <div className="border-outline-variant relative aspect-[4/3] w-full overflow-hidden rounded-xl border">
+          <div className="border-outline-variant relative aspect-[4/3] w-full overflow-hidden rounded-none border">
             <Image
               src={preview}
               alt="Screenshot preview"
@@ -53,7 +53,7 @@ export function ComposeForm({
             <button
               type="button"
               onClick={() => onPickImage(undefined)}
-              className="bg-surface/80 text-on-surface absolute top-2 right-2 flex size-8 items-center justify-center rounded-full backdrop-blur-sm"
+              className="bg-surface/80 text-on-surface absolute top-2 right-2 flex size-8 items-center justify-center rounded-none backdrop-blur-sm"
               aria-label="Remove screenshot"
             >
               <Trash2 className="size-4" />
@@ -64,9 +64,9 @@ export function ComposeForm({
             <button
               type="button"
               onClick={() => fileInputRef.current?.click()}
-              className="border-outline-variant bg-surface-bright hover:bg-surface-container-low group flex w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed p-8 text-center transition-colors"
+              className="border-outline-variant bg-surface-bright hover:bg-surface-container-low group flex w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-none border-2 border-dashed p-8 text-center transition-colors"
             >
-              <div className="bg-surface-container border-outline-variant flex size-12 items-center justify-center rounded-full border transition-transform group-hover:scale-105">
+              <div className="bg-surface-container border-outline-variant flex size-12 items-center justify-center rounded-none border transition-transform group-hover:scale-105">
                 <UploadCloud className="text-on-surface-variant size-5" />
               </div>
               <div>
@@ -134,7 +134,7 @@ export function ComposeForm({
                   key={c.value}
                   value={c.value}
                   className={cn(
-                    "text-code-snippet rounded-full border px-4 py-2 font-mono",
+                    "text-code-snippet rounded-none border px-4 py-2 font-mono",
                     "bg-surface-bright text-on-surface-variant border-outline-variant hover:border-outline",
                     "data-[state=on]:bg-on-surface data-[state=on]:text-surface data-[state=on]:border-on-surface",
                   )}

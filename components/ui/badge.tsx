@@ -11,7 +11,7 @@ const badgeVariants = cva(
       variant: {
         outline: "border border-outline-variant text-on-surface-variant px-3 py-1",
         square:
-          "border border-outline-variant text-on-surface-variant px-2 py-0.5 rounded-[2px]",
+          "border border-outline-variant text-on-surface-variant px-2 py-0.5 rounded-none",
         solid: "bg-on-surface text-surface px-3 py-1",
       },
     },
