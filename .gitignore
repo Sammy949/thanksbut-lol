@@ -49,3 +49,6 @@ next-env.d.ts
 
 # Local-only planning notes & design source (never committed)
 notes/
+
+# npm lockfile — this project uses bun
+package-lock.json
