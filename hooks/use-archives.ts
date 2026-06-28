@@ -4,7 +4,7 @@ import { usePaginatedQuery } from "convex/react";
 
 import { api } from "@/lib/convex-api";
 import type { ArchiveCategory } from "@/types/archive";
-import { useVisitorId } from "./use-visitor-id";
+import { useSessionId } from "./use-session-id";
 
 /**
  * Infinite-scroll archive feed. Newest-first, optionally filtered by category.
@@ -12,11 +12,11 @@ import { useVisitorId } from "./use-visitor-id";
  * progressively load while scrolling.
  */
 export function useArchives(category: ArchiveCategory | null, pageSize = 12) {
-  const visitorId = useVisitorId();
+  const sessionId = useSessionId();
 
   const { results, status, loadMore, isLoading } = usePaginatedQuery(
     api.archives.list,
-    { category: category ?? undefined, visitorId: visitorId || undefined },
+    { category: category ?? undefined, sessionId: sessionId || undefined },
     { initialNumItems: pageSize },
   );
 
