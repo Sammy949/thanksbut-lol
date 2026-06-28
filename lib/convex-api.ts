@@ -22,13 +22,13 @@ export const api = {
       {
         paginationOpts: PaginationOptions;
         category?: ArchiveCategory;
-        visitorId?: string;
+        sessionId?: string;
       },
       PaginationResult<ArchiveResponse>
     >("archives:list"),
     getById: makeFunctionReference<
       "query",
-      { id: string; visitorId?: string },
+      { id: string; sessionId?: string },
       ArchiveResponse | null
     >("archives:getById"),
     stats: makeFunctionReference<"query", Record<string, never>, { total: number }>(
@@ -43,7 +43,7 @@ export const api = {
   reactions: {
     toggle: makeFunctionReference<
       "mutation",
-      { archiveId: string; visitorId: string },
+      { archiveId: string; sessionId: string; secret: string },
       { reacted: boolean; reactions: number }
     >("reactions:toggle"),
   },

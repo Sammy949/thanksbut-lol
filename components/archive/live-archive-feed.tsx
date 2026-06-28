@@ -3,7 +3,7 @@
 import * as React from "react";
 
 import { useArchives } from "@/hooks/use-archives";
-import { useReaction } from "@/hooks/use-reaction";
+import { useReactions } from "@/hooks/use-reactions";
 import { useReport } from "@/hooks/use-report";
 import { responseToArchive } from "@/lib/archive-adapter";
 import type { ArchiveCategory } from "@/types/archive";
@@ -18,15 +18,17 @@ import { ArchiveFeed } from "./archive-feed";
 export function LiveArchiveFeed() {
   const [category, setCategory] = React.useState<ArchiveCategory | null>(null);
   const { archives, status, loadMore, canLoadMore } = useArchives(category, 24);
-  const react = useReaction();
+  // Reactions write through /api/react (trusted session); overlay gives instant
+  // feedback over the live query before the subscription catches up.
+  const { archives: reactiveArchives, react } = useReactions(archives);
   const report = useReport();
 
   return (
     <ArchiveFeed
-      archives={archives.map(responseToArchive)}
+      archives={reactiveArchives.map(responseToArchive)}
       category={category}
       onCategoryChange={setCategory}
-      onReact={(id) => react(id)}
+      onReact={react}
       onReportSubmit={(id, reason) => report(id, reason)}
       onLoadMore={loadMore}
       hasMore={canLoadMore}
