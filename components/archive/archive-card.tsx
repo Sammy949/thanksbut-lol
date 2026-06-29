@@ -1,7 +1,6 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import Image from "next/image";
 import { Eye, Flag } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -76,13 +75,21 @@ export function ArchiveCard({
         className="block w-full text-left"
       >
         {archive.image ? (
-          <div className="bg-surface-variant border-outline-variant relative aspect-[4/3] w-full overflow-hidden border">
-            <Image
+          // Single column (mobile): uniform 4:3 crop keeps the stack tidy, since
+          // a one-wide column can't read as masonry. sm+ (the 2–3 column wall):
+          // honor each screenshot's real proportions — a square or tall artifact
+          // keeps its shape and simply flows within its own column, so it can
+          // never resize a neighbour.
+          <div className="bg-surface-variant border-outline-variant relative w-full overflow-hidden border">
+            {/* eslint-disable-next-line @next/next/no-img-element -- per-upload
+                natural ratio; next/image needs fixed dims or fill, and we store
+                neither per artifact. */}
+            <img
               src={archive.image}
               alt={`Rejection from ${archive.company ?? "an organisation"}`}
-              fill
-              sizes="(max-width: 768px) 100vw, 360px"
-              className="object-cover"
+              loading="lazy"
+              decoding="async"
+              className="block aspect-[4/3] w-full object-cover sm:aspect-auto sm:h-auto"
             />
             <div className="bg-on-surface/25 absolute inset-0 flex items-center justify-center opacity-0 backdrop-blur-[1px] transition-opacity group-hover:opacity-100">
               <Eye className="text-surface size-7" />
