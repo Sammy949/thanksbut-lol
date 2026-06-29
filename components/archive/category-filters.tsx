@@ -18,6 +18,10 @@ interface CategoryFiltersProps {
  * horizontal scroll container, holding a `w-max` row of non-shrinking tabs so
  * it overflows and scrolls on narrow screens. A right-edge fade (mobile only)
  * signals there's more to swipe to, since the scrollbar itself is hidden.
+ *
+ * The row uses `mx-auto`: on desktop it's narrower than the rail and centers;
+ * on mobile it's wider, the auto-margins collapse to 0, and it scrolls from the
+ * left edge (unlike flex `justify-center`, which would clip the start).
  */
 export function CategoryFilters({ value, onChange }: CategoryFiltersProps) {
   return (
@@ -29,7 +33,7 @@ export function CategoryFilters({ value, onChange }: CategoryFiltersProps) {
           onValueChange={(v) => {
             if (v) onChange(v === ALL ? null : (v as ArchiveCategory));
           }}
-          className="border-outline-variant flex w-max gap-2 border-b"
+          className="border-outline-variant mx-auto flex w-max gap-2 border-b"
         >
           {CATEGORY_FILTERS.map((filter) => (
             <ToggleGroupItem
