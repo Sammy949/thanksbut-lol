@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import { Flag } from "lucide-react";
 
 import { formatRelativeTime } from "@/lib/format";
@@ -39,13 +38,15 @@ export function ArchiveLightbox({
             </div>
 
             {archive.image && (
-              <div className="bg-surface-variant border-outline-variant relative aspect-[4/3] w-full overflow-hidden border">
-                <Image
+              // Inspect view shows the artifact in full — natural proportions,
+              // capped at 70vh and letterboxed — unlike the cropped board card.
+              <div className="bg-surface-variant border-outline-variant flex max-h-[70vh] w-full items-center justify-center overflow-hidden border">
+                {/* eslint-disable-next-line @next/next/no-img-element -- natural-ratio
+                    artifact of unknown dimensions; next/image needs fixed w/h or fill. */}
+                <img
                   src={archive.image}
                   alt={`Rejection from ${archive.company ?? "an organisation"}`}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 640px"
-                  className="object-cover"
+                  className="max-h-[70vh] w-auto max-w-full object-contain"
                 />
               </div>
             )}
