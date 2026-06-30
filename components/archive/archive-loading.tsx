@@ -5,7 +5,7 @@ const ROTATIONS = [-2, 2, 1.5, -3, 1, -1.5];
 /** Loading state: "Retrieving artifacts…" + a skeleton paper board. */
 export function ArchiveLoading() {
   return (
-    <div className="mx-auto max-w-[1120px] px-5 py-12 md:px-16">
+    <div className="mx-auto w-full max-w-[1120px] px-5 py-12 md:px-16">
       <h1 className="text-headline-md text-on-surface-variant font-display mb-1">
         Retrieving artifacts…
       </h1>

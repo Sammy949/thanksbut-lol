@@ -58,7 +58,11 @@ export function ArchiveWall({
   onReact,
 }: ArchiveWallProps) {
   return (
-    <div className="mx-auto max-w-[1120px] columns-1 gap-x-8 px-5 sm:columns-2 md:px-16 lg:columns-3">
+    // `w-full` is load-bearing: the parent <section> is a flexbox, and `mx-auto`
+    // on a flex item disables the default stretch — without an explicit width the
+    // column box shrinks to fit its content's intrinsic width (the card images),
+    // overflowing narrow screens. width:100% (capped by max-w) keeps it on-screen.
+    <div className="mx-auto w-full max-w-[1120px] columns-1 gap-x-8 px-5 sm:columns-2 md:px-16 lg:columns-3">
       {archives.map((archive) => {
         const stamp = STAMPS[hashId(archive.id + "stamp") % STAMPS.length];
         const decoration = DECORATIONS[hashId(archive.id + "deco") % DECORATIONS.length];
