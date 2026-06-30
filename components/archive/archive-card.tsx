@@ -49,9 +49,12 @@ export function ArchiveCard({
         <PushPin className="top-2 left-1/2 z-10 -translate-x-1/2" />
       )}
       {decoration === "tape" && (
-        <MaskingTape className="top-[-8px] left-4 z-10 h-5 w-16 -rotate-12" />
+        // Seated deep onto the card (h-6, top only -6px) with a gentle tilt, so
+        // the rotated far end still overlaps the paper instead of lifting off
+        // into the gap above the card. A steeper angle made the strip "float".
+        <MaskingTape className="top-[-6px] left-5 z-10 h-6 w-16 -rotate-[7deg]" />
       )}
-      {decoration === "clip" && <PaperClip className="top-[-16px] left-6 z-10" />}
+      {decoration === "clip" && <PaperClip className="top-[-12px] left-6 z-10" />}
 
       {stamp && (
         <StampMark label={stamp} style={stampStyle} className="absolute z-20 text-[22px]" />
