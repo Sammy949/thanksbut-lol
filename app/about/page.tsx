@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 import { SITE } from "@/constants/site";
+import { ORIGIN_TWEET_URL } from "@/constants/faq";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/shared/json-ld";
 import { StampMark } from "@/components/archive/stamp-mark";
@@ -59,9 +60,10 @@ export default function AboutPage() {
       <div className="mx-auto flex w-full max-w-[760px] flex-col gap-14 px-5 md:px-8">
         <Section title="The idea" stamp="REJECTED" stampRotate="-8deg">
           <p>
-            It started as a joke. Robinson Honour posted a tweet saying someone
-            should build a website where people could upload their rejection
-            emails. The kind of idea that usually stays a tweet.
+            It started as a joke. Robinson Honour posted{" "}
+            <Ext href={ORIGIN_TWEET_URL}>a tweet</Ext> saying someone should
+            build a website where people could upload their rejection emails.
+            The kind of idea that usually stays a tweet.
           </p>
           <Pull>
             &ldquo;Someone should build a site for rejection emails.&rdquo; So

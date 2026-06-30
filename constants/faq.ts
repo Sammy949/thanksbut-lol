@@ -1,13 +1,24 @@
 /**
  * Canonical question/answer pairs for the project. Rendered on /faq AND emitted
  * as FAQPage JSON-LD, so search engines and AI assistants quote the same answers
- * a human reads. Keep answers in plain prose (no markup) — FAQPage structured
- * data expects plain text, and these double as the authoritative record.
+ * a human reads — keep this the single source of truth.
+ *
+ * An answer is usually plain prose. When it needs an inline link, write it as an
+ * ordered list of segments (strings + `{ text, href }` links); the page renders
+ * real <a> elements and `answerHtml()` serialises the same content to HTML for
+ * the JSON-LD (FAQPage answer text may contain links).
  */
+export type AnswerLink = { text: string; href: string };
+export type AnswerSegment = string | AnswerLink;
+
 export type FaqItem = {
   question: string;
-  answer: string;
+  answer: string | AnswerSegment[];
 };
+
+/** The tweet that kicked the whole thing off — also linked on /about. */
+export const ORIGIN_TWEET_URL =
+  "https://x.com/I_am_SamY01/status/2070859292597510614";
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
@@ -17,8 +28,11 @@ export const FAQ_ITEMS: FaqItem[] = [
   },
   {
     question: "Why was it created?",
-    answer:
-      "The idea started after Robinson Honour posted a tweet joking that someone should build a website where people could upload their rejection emails. Instead of letting it stay an idea, Samuel built it. The goal isn't to mock anyone who gets rejected — it's to celebrate persistence, growth, and the stories behind every attempt by making those moments public instead of hidden.",
+    answer: [
+      "The idea started after Robinson Honour posted ",
+      { text: "a tweet", href: ORIGIN_TWEET_URL },
+      " joking that someone should build a website where people could upload their rejection emails. Instead of letting it stay an idea, Samuel built it. The goal isn't to mock anyone who gets rejected — it's to celebrate persistence, growth, and the stories behind every attempt by making those moments public instead of hidden.",
+    ],
   },
   {
     question: "Who built thanksbut.lol?",
@@ -36,3 +50,17 @@ export const FAQ_ITEMS: FaqItem[] = [
       "Click \"Archive Yours\" anywhere on the site to open the submission flow. You can upload a screenshot of your rejection — using the built-in crop and blur tools to hide any personal details first — or paste the text, add a category and an optional caption, and post it to the wall. Submissions are anonymous by default.",
   },
 ];
+
+/** Normalise an answer to its ordered segments. */
+export function answerSegments(answer: FaqItem["answer"]): AnswerSegment[] {
+  return typeof answer === "string" ? [answer] : answer;
+}
+
+/** Serialise an answer to an HTML string (links become <a>) for FAQPage JSON-LD. */
+export function answerHtml(answer: FaqItem["answer"]): string {
+  return answerSegments(answer)
+    .map((seg) =>
+      typeof seg === "string" ? seg : `<a href="${seg.href}">${seg.text}</a>`,
+    )
+    .join("");
+}

@@ -3,7 +3,7 @@ import Link from "next/link";
 import { ChevronDown } from "lucide-react";
 
 import { SITE } from "@/constants/site";
-import { FAQ_ITEMS } from "@/constants/faq";
+import { FAQ_ITEMS, answerSegments } from "@/constants/faq";
 import { Button } from "@/components/ui/button";
 import { JsonLd } from "@/components/shared/json-ld";
 import { StampMark } from "@/components/archive/stamp-mark";
@@ -70,7 +70,21 @@ export default function FaqPage() {
               <ChevronDown className="text-secondary group-open:text-primary mt-1 size-5 shrink-0 transition-transform duration-200 group-open:rotate-180" />
             </summary>
             <p className="text-body-md text-on-surface-variant border-outline-variant mt-4 border-t border-dashed pt-4 font-mono leading-relaxed">
-              {item.answer}
+              {answerSegments(item.answer).map((seg, j) =>
+                typeof seg === "string" ? (
+                  seg
+                ) : (
+                  <a
+                    key={j}
+                    href={seg.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-primary underline decoration-1 underline-offset-2 hover:opacity-80"
+                  >
+                    {seg.text}
+                  </a>
+                ),
+              )}
             </p>
           </details>
         ))}

@@ -8,7 +8,7 @@
  * is published by the Person; pages are about the WebSite).
  */
 import { SITE } from "@/constants/site";
-import { FAQ_ITEMS, type FaqItem } from "@/constants/faq";
+import { FAQ_ITEMS, answerHtml, type FaqItem } from "@/constants/faq";
 
 const PERSON_ID = `${SITE.url}/#person`;
 const WEBSITE_ID = `${SITE.url}/#website`;
@@ -71,7 +71,7 @@ export function faqJsonLd(items: FaqItem[] = FAQ_ITEMS) {
       name: item.question,
       acceptedAnswer: {
         "@type": "Answer",
-        text: item.answer,
+        text: answerHtml(item.answer),
       },
     })),
   };
