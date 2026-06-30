@@ -39,7 +39,7 @@ export default function AboutPage() {
       <header className="relative mx-auto flex w-full max-w-[1120px] flex-col items-center px-5 py-12 text-center md:px-16 md:py-20">
         <StampMark
           label="THE STORY"
-          className="absolute top-10 right-[6%] hidden rotate-[10deg] text-[18px] opacity-25 sm:block md:right-[12%]"
+          className="absolute top-10 left-[6%] hidden rotate-[-8deg] text-[18px] opacity-25 sm:block md:left-[12%]"
         />
         <span className="text-label-caps text-secondary mb-4 font-mono uppercase">
           Case file · est. 2026
