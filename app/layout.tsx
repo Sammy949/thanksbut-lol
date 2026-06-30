@@ -7,6 +7,8 @@ import { SITE } from "@/constants/site";
 import { Toaster } from "@/components/ui/sonner";
 import { Navbar } from "@/components/layout/navbar";
 import { SiteFooter } from "@/components/layout/site-footer";
+import { JsonLd } from "@/components/shared/json-ld";
+import { personJsonLd, websiteJsonLd } from "@/lib/structured-data";
 import { Providers } from "./providers";
 import "./globals.css";
 
@@ -32,6 +34,10 @@ export const metadata: Metadata = {
   },
   description: SITE.description,
   metadataBase: new URL(SITE.url),
+  keywords: [...SITE.keywords],
+  authors: [{ name: SITE.author.name, url: SITE.author.url }],
+  creator: SITE.author.name,
+  publisher: SITE.author.name,
   icons: { icon: "/api/favicon" },
   openGraph: {
     title: `${SITE.tagline} — ${SITE.name}`,
@@ -59,6 +65,8 @@ export default function RootLayout({
       className={`${garamond.variable} ${spaceMono.variable} h-full overflow-x-clip antialiased`}
     >
       <body className="font-body bg-paper-grain flex min-h-full flex-col overflow-x-clip">
+        <JsonLd data={websiteJsonLd} />
+        <JsonLd data={personJsonLd} />
         <Providers>
           <Navbar />
           <main className="min-w-0 flex-1">{children}</main>
