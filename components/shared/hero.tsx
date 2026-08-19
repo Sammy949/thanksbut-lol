@@ -6,11 +6,11 @@ import { formatCount } from "@/lib/format";
 import { Button } from "@/components/ui/button";
 import { StampMark } from "@/components/archive/stamp-mark";
 import { MaskingTape } from "@/components/archive/decorations";
-import { useSubmissionDrawer } from "@/components/upload/submission-context";
+import { useSubmissionTrigger } from "@/components/upload/submission-context";
 
 /** Garamond hero with scattered ink stamps and a taped-up archive count. */
 export function Hero({ count }: { count: number }) {
-  const { openDrawer } = useSubmissionDrawer();
+  const trigger = useSubmissionTrigger();
 
   return (
     <section className="relative mx-auto flex max-w-[1120px] flex-col items-center px-5 py-12 text-center md:px-16 md:py-24">
@@ -54,7 +54,7 @@ export function Hero({ count }: { count: number }) {
         <Button
           size="lg"
           className="shadow-[4px_4px_0_0_var(--on-surface-variant)] transition-transform hover:scale-105"
-          onClick={openDrawer}
+          {...trigger}
         >
           Archive Yours
         </Button>

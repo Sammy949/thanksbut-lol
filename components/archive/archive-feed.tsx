@@ -21,12 +21,17 @@ interface ArchiveFeedProps {
   category?: ArchiveCategory | null;
   onCategoryChange?: (category: ArchiveCategory | null) => void;
   onReact?: (id: string) => void;
-  onReportSubmit?: (id: string, reason: ReportReason) => void;
+  onReportSubmit?: (id: string, reason: ReportReason) => void | Promise<void>;
   onLoadMore?: () => void;
   hasMore?: boolean;
   loadingMore?: boolean;
   /** First-page load in progress — show the skeleton in the wall slot, keep tabs. */
   loading?: boolean;
+  /**
+   * A shared artifact resolved from a `?a=<id>` deep link. When it arrives we
+   * pop the lightbox open on it, even if it isn't on the currently-loaded page.
+   */
+  deepLinked?: Archive | null;
 }
 
 /**
@@ -44,6 +49,7 @@ export function ArchiveFeed({
   hasMore,
   loadingMore,
   loading,
+  deepLinked,
 }: ArchiveFeedProps) {
   const controlled = onCategoryChange !== undefined;
 
@@ -55,6 +61,18 @@ export function ArchiveFeed({
   const [active, setActive] = React.useState<Archive | null>(null);
   const [lightboxOpen, setLightboxOpen] = React.useState(false);
   const [reportOpen, setReportOpen] = React.useState(false);
+
+  // Open the lightbox on a `?a=<id>` shared artifact once it resolves. Keyed on
+  // the id (via a ref) so we auto-open each distinct share exactly once and
+  // never yank it back open after the visitor closes it.
+  const openedShareRef = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    if (deepLinked && openedShareRef.current !== deepLinked.id) {
+      openedShareRef.current = deepLinked.id;
+      setActive(deepLinked);
+      setLightboxOpen(true);
+    }
+  }, [deepLinked]);
 
   // Live data is already filtered server-side; only the mock needs client filtering.
   const filtered =

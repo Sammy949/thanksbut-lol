@@ -6,7 +6,7 @@ import { mutation, query, type QueryCtx } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { categoryValidator, imageValidator } from "./schema";
 import { serializeArchive } from "./lib/serialize";
-import { resolveIdentity } from "./lib/identity";
+import { resolveIdentity, assertServerSecret, assertAdminSecret } from "./lib/identity";
 import { archiveInputSchema, type ArchiveInputValues } from "../lib/validation";
 
 /**
@@ -61,13 +61,18 @@ export const list = query({
   },
 });
 
-/** Single archive by id (or null if missing/removed). */
+/** Single archive by id (or null if missing/removed/malformed). */
 export const getById = query({
-  args: { id: v.id("archives"), sessionId: v.optional(v.string()) },
+  args: { id: v.string(), sessionId: v.optional(v.string()) },
   handler: async (ctx, { id, sessionId }) => {
-    const doc = await ctx.db.get(id);
+    // `id` arrives from an untrusted `?a=<id>` share link. normalizeId returns
+    // null for anything that isn't a well-formed archives id, so a junk param
+    // resolves to "not found" instead of throwing and crashing the homepage.
+    const archiveId = ctx.db.normalizeId("archives", id);
+    if (!archiveId) return null;
+    const doc = await ctx.db.get(archiveId);
     if (!doc || doc.status !== "visible") return null;
-    return serializeArchive(doc, await hasReacted(ctx, id, sessionId));
+    return serializeArchive(doc, await hasReacted(ctx, archiveId, sessionId));
   },
 });
 
@@ -125,5 +130,86 @@ export const create = mutation({
     });
 
     return { id, manageToken };
+  },
+});
+
+/**
+ * Delete an archive by its secret manage token (self-serve, no accounts).
+ *
+ * TRUST MODEL: server-to-server like the other trusted writes. `secret` proves
+ * the call came from the Next `/api/manage/delete` route; the unguessable
+ * `manageToken` (a random UUID handed to the submitter at create time) is the
+ * capability that authorizes deleting THIS archive — possession is proof.
+ *
+ * Cascades: deletes the archive's reaction and report rows too, so nothing
+ * dangles. Returns the stored image key (if any) so the route can delete the
+ * actual file from UploadThing — deleting only the row would leave the
+ * screenshot (often the PII) live on the CDN forever.
+ */
+export const removeByToken = mutation({
+  args: { id: v.string(), manageToken: v.string(), secret: v.string() },
+  handler: async (ctx, { id, manageToken, secret }) => {
+    assertServerSecret(secret);
+
+    const archiveId = ctx.db.normalizeId("archives", id);
+    if (!archiveId) return { deleted: false as const, imageKey: null };
+
+    const doc = await ctx.db.get(archiveId);
+    // Constant-ish behaviour: a wrong/missing token is indistinguishable from a
+    // missing archive to the caller.
+    if (!doc || doc.manageToken !== manageToken) {
+      return { deleted: false as const, imageKey: null };
+    }
+
+    // Cascade: reaction rows, then report rows, then the archive itself.
+    const reactionRows = await ctx.db
+      .query("reactions")
+      .withIndex("by_archive_identity", (q) => q.eq("archiveId", archiveId))
+      .collect();
+    for (const row of reactionRows) await ctx.db.delete(row._id);
+
+    const reportRows = await ctx.db
+      .query("reports")
+      .withIndex("by_archive", (q) => q.eq("archiveId", archiveId))
+      .collect();
+    for (const row of reportRows) await ctx.db.delete(row._id);
+
+    const imageKey = doc.image?.key ?? null;
+    await ctx.db.delete(archiveId);
+
+    return { deleted: true as const, imageKey };
+  },
+});
+
+/**
+ * Admin: remove an archive from the wall (owner moderation).
+ *
+ * Owner-only — gated by CONVEX_ADMIN_SECRET (the Next admin route verifies the
+ * signed admin cookie first). Soft delete: sets status:"removed" so the row
+ * stays as an audit trail (unlike self-serve delete, which hard-deletes the
+ * owner's own data). The wall already filters to status:"visible", so a removed
+ * archive vanishes from the public view. Resolves the archive's open reports and
+ * returns the image key so the route can delete the file from UploadThing.
+ */
+export const moderateRemove = mutation({
+  args: { archiveId: v.id("archives"), secret: v.string() },
+  handler: async (ctx, { archiveId, secret }) => {
+    assertAdminSecret(secret);
+
+    const doc = await ctx.db.get(archiveId);
+    if (!doc) return { removed: false as const, imageKey: null };
+
+    await ctx.db.patch(archiveId, { status: "removed" });
+
+    // Resolve the reports that flagged it — they've been actioned.
+    const reports = await ctx.db
+      .query("reports")
+      .withIndex("by_archive", (q) => q.eq("archiveId", archiveId))
+      .collect();
+    for (const r of reports) {
+      if (r.status === "open") await ctx.db.patch(r._id, { status: "resolved" });
+    }
+
+    return { removed: true as const, imageKey: doc.image?.key ?? null };
   },
 });

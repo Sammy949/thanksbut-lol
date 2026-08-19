@@ -27,20 +27,43 @@ interface ReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   /** Live mode: persist the report. When omitted, the dialog only toasts. */
-  onSubmit?: (reason: ReportReason) => void;
+  onSubmit?: (reason: ReportReason) => void | Promise<void>;
 }
 
 /** "What is wrong with this submission?" — the report flow from the mockups. */
 export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps) {
   const [reason, setReason] = React.useState<string>("");
+  const [submitting, setSubmitting] = React.useState(false);
 
-  const handleSubmit = () => {
-    if (reason) onSubmit?.(reason as ReportReason);
-    onOpenChange(false);
-    setReason("");
-    toast.success("Report received", {
-      description: "Thanks for helping keep the archive clean.",
-    });
+  const handleSubmit = async () => {
+    if (!reason || submitting) return;
+
+    // Mock mode (no handler): nothing to persist, just acknowledge and close.
+    if (!onSubmit) {
+      onOpenChange(false);
+      setReason("");
+      toast.success("Report received", {
+        description: "Thanks for helping keep the archive clean.",
+      });
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      await onSubmit(reason as ReportReason);
+      onOpenChange(false);
+      setReason("");
+      toast.success("Report received", {
+        description: "Thanks for helping keep the archive clean.",
+      });
+    } catch {
+      // Keep the dialog open so the reason isn't lost — let them retry.
+      toast.error("Couldn't file that report", {
+        description: "Please try again in a moment.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -72,8 +95,13 @@ export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps
               Cancel
             </Button>
           </DialogClose>
-          <Button size="sm" shape="sheet" disabled={!reason} onClick={handleSubmit}>
-            Submit
+          <Button
+            size="sm"
+            shape="sheet"
+            disabled={!reason || submitting}
+            onClick={handleSubmit}
+          >
+            {submitting ? "Submitting…" : "Submit"}
           </Button>
         </DialogFooter>
       </DialogContent>

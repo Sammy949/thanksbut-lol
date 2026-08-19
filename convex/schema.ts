@@ -75,9 +75,18 @@ export default defineSchema({
   reports: defineTable({
     archiveId: v.id("archives"),
     reason: reportReasonValidator,
+    /**
+     * Reporter identity (same resolution as reactions — see convex/lib/identity).
+     * Server-issued "session:<uuid>" today. Optional so pre-hardening rows (which
+     * only had `visitorId`) still satisfy the schema; every new report sets it.
+     */
+    identity: v.optional(v.string()),
+    /** Legacy client-supplied id from the pre-hardening flow. No longer written. */
     visitorId: v.optional(v.string()),
     status: v.union(v.literal("open"), v.literal("resolved")),
   })
     .index("by_archive", ["archiveId"])
-    .index("by_status", ["status"]),
+    .index("by_status", ["status"])
+    // Dedup: at most one OPEN report per identity per archive.
+    .index("by_archive_identity", ["archiveId", "identity"]),
 });

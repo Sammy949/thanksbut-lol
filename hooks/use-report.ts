@@ -1,16 +1,23 @@
 "use client";
 
-import { useMutation } from "convex/react";
-
-import { api } from "@/lib/convex-api";
 import type { ReportReason } from "@/types/report";
-import { useVisitorId } from "./use-visitor-id";
 
-/** File a report against an archive (backend exists; UI already built). */
+/**
+ * File a report against an archive.
+ *
+ * Writes through the trusted `/api/report` route (HMAC session cookie + rate
+ * limit + server secret), mirroring reactions — the reporter identity is issued
+ * server-side so a single visitor can't flood the moderation queue. Returns a
+ * promise so the dialog can await it and toast success/failure honestly.
+ */
 export function useReport() {
-  const visitorId = useVisitorId();
-  const create = useMutation(api.reports.create);
-
-  return (archiveId: string, reason: ReportReason) =>
-    create({ archiveId, reason, visitorId: visitorId || undefined });
+  return async (archiveId: string, reason: ReportReason): Promise<void> => {
+    const res = await fetch("/api/report", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "same-origin",
+      body: JSON.stringify({ archiveId, reason }),
+    });
+    if (!res.ok) throw new Error(`Report failed: ${res.status}`);
+  };
 }
