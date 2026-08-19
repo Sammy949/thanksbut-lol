@@ -38,6 +38,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
   const [showText, setShowText] = React.useState(false);
   const [preview, setPreview] = React.useState<string | null>(null);
   const [archivedId, setArchivedId] = React.useState<string | null>(null);
+  const [manageToken, setManageToken] = React.useState<string | null>(null);
   const [editingFile, setEditingFile] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [slowArchive, setSlowArchive] = React.useState(false);
@@ -88,6 +89,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
       return null;
     });
     setArchivedId(null);
+    setManageToken(null);
     uploadRef.current = null;
     setUploadState("idle");
   }, [form]);
@@ -126,7 +128,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
             : await uploadImage(data.image);
       }
 
-      const { id } = await createArchive({
+      const created = await createArchive({
         category: data.category,
         ...(image ? { image } : {}),
         ...(data.text ? { text: data.text } : {}),
@@ -134,7 +136,8 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
         ...(data.caption ? { caption: data.caption } : {}),
         ...(data.displayName ? { displayName: data.displayName } : {}),
       });
-      setArchivedId(id);
+      setArchivedId(created.id);
+      setManageToken(created.manageToken);
       toast.success("Archived for the culture", {
         description: "Your rejection is now part of the wall.",
       });
@@ -181,6 +184,7 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
               <SubmissionSuccess
                 id={archivedId}
                 category={values.category}
+                manageToken={manageToken}
                 onView={() => handleOpenChange(false)}
                 onShare={async () => {
                   const url = `${window.location.origin}/?a=${archivedId}`;
