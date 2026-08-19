@@ -8,7 +8,7 @@ import { SITE } from "@/constants/site";
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { MobileMenu } from "@/components/layout/mobile-menu";
-import { useSubmissionDrawer } from "@/components/upload/submission-context";
+import { useSubmissionTrigger } from "@/components/upload/submission-context";
 
 const NAV_LINKS = [
   { href: "/", label: "The Wall" },
@@ -18,7 +18,7 @@ const NAV_LINKS = [
 
 /** Sticky paper nav: wordmark · The Wall · About · FAQ · theme · Archive Yours. */
 export function Navbar() {
-  const { openDrawer } = useSubmissionDrawer();
+  const trigger = useSubmissionTrigger();
   const pathname = usePathname();
 
   return (
@@ -54,7 +54,7 @@ export function Navbar() {
           <span className="hidden md:flex">
             <ThemeToggle />
           </span>
-          <Button size="pill" onClick={openDrawer}>
+          <Button size="pill" {...trigger}>
             <span className="sm:hidden">Archive</span>
             <span className="hidden sm:inline">Archive Yours</span>
           </Button>

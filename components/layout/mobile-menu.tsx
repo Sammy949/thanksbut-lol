@@ -27,10 +27,18 @@ const NAV_LINKS = [
 export function MobileMenu() {
   const [open, setOpen] = React.useState(false);
   const pathname = usePathname();
-  const { openDrawer } = useSubmissionDrawer();
+  const { openDrawer, prefetchDrawer } = useSubmissionDrawer();
 
   return (
-    <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
+    <DialogPrimitive.Root
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next);
+        // Opening the menu is the clearest mobile signal that "Archive Yours"
+        // (inside the sheet) may be next — warm its chunk now.
+        if (next) prefetchDrawer();
+      }}
+    >
       <DialogPrimitive.Trigger
         aria-label="Open menu"
         className="text-on-surface hover:text-primary flex size-9 items-center justify-center transition-colors md:hidden"
@@ -99,6 +107,7 @@ export function MobileMenu() {
             <Button
               shape="sheet"
               className="w-full"
+              onTouchStart={prefetchDrawer}
               onClick={() => {
                 setOpen(false);
                 openDrawer();
