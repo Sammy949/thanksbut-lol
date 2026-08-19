@@ -4,19 +4,26 @@ import {
   type PaginationResult,
 } from "convex/server";
 
-import type { ArchiveResponse, ArchiveCategory, ArchiveInput } from "@/types/archive";
+import type {
+  ArchiveResponse,
+  ArchiveCategory,
+  ArchiveInput,
+  ArchiveImage,
+} from "@/types/archive";
 import type { ReportReason } from "@/types/report";
 
 /** One reported archive as shown on the admin dashboard (from reports:listOpen). */
 export interface OpenReportItem {
   archiveId: string;
   reportCount: number;
-  reasons: ReportReason[];
+  /** Individual reports, oldest first — the moderation timeline. */
+  reports: { reason: ReportReason; createdAt: number }[];
   firstReportedAt: number;
   archive: {
     id: string;
     category: ArchiveCategory;
-    image: { url: string } | null;
+    /** `key` is needed to delete the original file when a moderator redacts it. */
+    image: { url: string; key: string } | null;
     text: string | null;
     company: string | null;
     caption: string | null;
@@ -68,6 +75,11 @@ export const api = {
       { archiveId: string; secret: string },
       { removed: boolean; imageKey: string | null }
     >("archives:moderateRemove"),
+    moderateReplaceImage: makeFunctionReference<
+      "mutation",
+      { archiveId: string; image: ArchiveImage; secret: string },
+      { replaced: boolean; oldImageKey: string | null }
+    >("archives:moderateReplaceImage"),
   },
   reactions: {
     toggle: makeFunctionReference<
