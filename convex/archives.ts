@@ -213,3 +213,33 @@ export const moderateRemove = mutation({
     return { removed: true as const, imageKey: doc.image?.key ?? null };
   },
 });
+
+/**
+ * Admin: replace an archive's image with a moderator-redacted version.
+ *
+ * Owner-only — gated by CONVEX_ADMIN_SECRET. The Next route uploads the redacted
+ * screenshot first (new UploadThing file) and passes the resulting image payload
+ * here; we swap it onto the archive and return the OLD image key so the route can
+ * delete the original file from UploadThing. Leaving the original live would keep
+ * the un-redacted screenshot (the PII we're redacting) reachable on the CDN
+ * forever, defeating the whole point. The redaction is silent — no status change,
+ * no visible "edited" mark — so a clean post just quietly loses its leaked info.
+ */
+export const moderateReplaceImage = mutation({
+  args: {
+    archiveId: v.id("archives"),
+    image: imageValidator,
+    secret: v.string(),
+  },
+  handler: async (ctx, { archiveId, image, secret }) => {
+    assertAdminSecret(secret);
+
+    const doc = await ctx.db.get(archiveId);
+    if (!doc) return { replaced: false as const, oldImageKey: null };
+
+    const oldImageKey = doc.image?.key ?? null;
+    await ctx.db.patch(archiveId, { image });
+
+    return { replaced: true as const, oldImageKey };
+  },
+});

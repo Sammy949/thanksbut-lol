@@ -65,9 +65,11 @@ export const create = mutation({
  *
  * Owner-only — gated by CONVEX_ADMIN_SECRET (the Next admin route verifies the
  * signed admin cookie before calling this). Returns one entry per reported
- * archive with its open-report count and the reasons, so the dashboard can show
- * "what's flagged and why" without N+1 lookups on the client. Skips archives
- * that were already removed or hard-deleted (stale reports).
+ * archive with its individual reports (reason + when) and the joined archive,
+ * so the dashboard can show "what's flagged, why, and when" — plus the full
+ * image (url + key, the key is needed to redact/replace the file) — without
+ * N+1 lookups on the client. Skips archives that were already removed or
+ * hard-deleted (stale reports).
  */
 export const listOpen = query({
   args: { secret: v.string() },
@@ -79,39 +81,35 @@ export const listOpen = query({
       .withIndex("by_status", (q) => q.eq("status", "open"))
       .collect();
 
-    // Group by archive.
+    // Group the individual reports by archive.
     const byArchive = new Map<
       Id<"archives">,
-      { reportIds: string[]; reasons: string[]; firstReportedAt: number }
+      { reason: string; createdAt: number }[]
     >();
     for (const r of open) {
-      const entry = byArchive.get(r.archiveId);
-      if (entry) {
-        entry.reportIds.push(r._id);
-        entry.reasons.push(r.reason);
-        entry.firstReportedAt = Math.min(entry.firstReportedAt, r._creationTime);
-      } else {
-        byArchive.set(r.archiveId, {
-          reportIds: [r._id],
-          reasons: [r.reason],
-          firstReportedAt: r._creationTime,
-        });
-      }
+      const list = byArchive.get(r.archiveId);
+      const entry = { reason: r.reason, createdAt: r._creationTime };
+      if (list) list.push(entry);
+      else byArchive.set(r.archiveId, [entry]);
     }
 
     const items = await Promise.all(
-      [...byArchive.entries()].map(async ([archiveId, group]) => {
+      [...byArchive.entries()].map(async ([archiveId, reports]) => {
+        // Oldest report first — the timeline reads top-to-bottom.
+        reports.sort((a, b) => a.createdAt - b.createdAt);
         const doc = await ctx.db.get(archiveId);
         return {
           archiveId: archiveId as string,
-          reportCount: group.reportIds.length,
-          reasons: group.reasons,
-          firstReportedAt: group.firstReportedAt,
+          reportCount: reports.length,
+          reports,
+          firstReportedAt: reports[0]?.createdAt ?? 0,
           archive: doc
             ? {
                 id: doc._id as string,
                 category: doc.category,
-                image: doc.image ? { url: doc.image.url } : null,
+                image: doc.image
+                  ? { url: doc.image.url, key: doc.image.key }
+                  : null,
                 text: doc.text ?? null,
                 company: doc.company ?? null,
                 caption: doc.caption ?? null,
