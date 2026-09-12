@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { EB_Garamond, Space_Mono } from "next/font/google";
+import Script from "next/script";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 
@@ -75,6 +76,13 @@ export default function RootLayout({
         <Toaster />
         <Analytics />
         <SpeedInsights />
+        {/* Self-hosted privacy analytics (Umami). afterInteractive keeps it off
+            the paint path; data-website-id identifies the site. */}
+        <Script
+          src="https://insight.samuelyahaya.com/script.js"
+          data-website-id="e751f0f2-92c9-4d6a-9f27-1bbe5688ecfb"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );
