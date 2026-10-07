@@ -34,8 +34,7 @@ yarn-error.log*
 .env*
 !.env.example
 
-# convex (generated client + local state)
-convex/_generated
+# Convex generated API/types are tracked so fresh checkouts can typecheck.
 
 # vercel
 .vercel

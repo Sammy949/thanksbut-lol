@@ -2,12 +2,15 @@
   "name": "thanksbut.lol",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "bun@1.3.14",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint",
+    "lint": "eslint --max-warnings 0",
     "typecheck": "tsc --noEmit",
+    "typecheck:convex": "tsc --noEmit -p convex/tsconfig.json",
+    "check": "bun run lint && bun run typecheck && bun run typecheck:convex",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },
