@@ -9,8 +9,8 @@ import { resolveIdentity, assertReactionSecret } from "./lib/identity";
  * TRUST MODEL: this is the only path that may change a reaction count, and it
  * runs server-to-server. The `sessionId` is recovered from an HMAC-signed
  * httpOnly cookie by the Next `/api/react` route; `secret` proves the call came
- * from that route and not a forged browser request. Together they make the
- * count un-inflatable — a caller can no longer mint fresh identities at will.
+ * from that route and not a forged browser request. This prevents callers from
+ * choosing arbitrary write identities; it does not prevent fresh sessions.
  *
  * One *active* reaction per identity (enforced by by_archive_identity). The
  * denormalised `archive.reactions` is kept in step here and is treated as a

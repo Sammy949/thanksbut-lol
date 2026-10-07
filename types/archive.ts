@@ -5,8 +5,8 @@
  * (image-primary); when there's no screenshot, the raw rejection `text` stands
  * in. Everything else (company, caption, display name) is optional metadata.
  *
- * This is the front-end shape only. The Convex backend is intentionally not
- * built yet; when it is, the persisted document should map onto this type.
+ * This is the display shape. `lib/archive-adapter.ts` maps the persisted API
+ * response to it, including image metadata -> URL.
  */
 
 import type { UploadPayload } from "./upload";
@@ -24,7 +24,7 @@ export type ArchiveCategory =
 export type ArchiveStamp = "REJECTED" | "GHOSTED";
 
 export interface Archive {
-  /** Stable unique id (Convex document id once the backend exists). */
+  /** Stable unique id (Convex document id for live archives). */
   id: string;
   /** Category, used for the homepage filter row. */
   category: ArchiveCategory;
@@ -46,11 +46,6 @@ export interface Archive {
   createdAt: number;
   /** Optional decorative stamp (REJECTED / GHOSTED). */
   stamp?: ArchiveStamp;
-  /**
-   * Anonymous browser identity (localStorage UUID) of the submitter.
-   * Used later to dedupe reactions and recall drafts — never an account.
-   */
-  visitorId?: string;
 }
 
 /** Alias used by the UI/forms when "category" reads more naturally. */
@@ -62,7 +57,7 @@ export type ArchiveImage = UploadPayload;
 /**
  * Shape returned by the Convex `archives.list` / `getById` queries to the UI.
  * Distinct from the legacy display `Archive` (string image) used by the current
- * mock — the presentation layer maps this once the redesign is wired.
+ * mock — the live feed adapts this before rendering.
  */
 export interface ArchiveResponse {
   id: string;

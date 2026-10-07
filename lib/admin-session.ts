@@ -81,7 +81,10 @@ export function verifyAdminSession(
   const expected = sign(payload);
 
   if (provided.length !== expected.length) return false;
-  if (!timingSafeEqual(Buffer.from(provided), Buffer.from(expected))) return false;
+  const providedBytes = Buffer.from(provided);
+  const expectedBytes = Buffer.from(expected);
+  if (providedBytes.length !== expectedBytes.length) return false;
+  if (!timingSafeEqual(providedBytes, expectedBytes)) return false;
 
   const expiresAt = Number(payload);
   return Number.isFinite(expiresAt) && expiresAt > now;

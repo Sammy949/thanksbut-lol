@@ -4,8 +4,8 @@
  * Same trust chain as /api/react (the count/queue is only as trustworthy as the
  * identity behind it):
  *  1. Recover the sessionId from the HMAC-signed httpOnly cookie. No valid
- *     cookie → 401. The client can't forge a *new* session without the secret,
- *     so it can't mint fresh identities to flood the moderation queue.
+ *     cookie → 401. Signatures prevent forgery, but callers can still request
+ *     fresh sessions. Deduplication is per session, not per person.
  *  2. Soft per-IP rate limit — secondary flood protection, CGNAT-safe.
  *  3. Call the trusted Convex mutation with the shared server secret, which
  *     dedupes to one open report per identity per archive.
@@ -76,9 +76,6 @@ export async function POST(req: Request) {
     });
   } catch {
     // Don't leak whether it was a bad id, a missing archive, or an auth fault.
-    return NextResponse.json(
-      { error: "Could not file that report." },
-      { status: 502 },
-    );
+    return NextResponse.json({ error: "Could not file that report." }, { status: 502 });
   }
 }
