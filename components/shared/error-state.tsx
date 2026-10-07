@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { StampMark } from "@/components/archive/stamp-mark";
 
 /** "Page Not Accepted" — the 404 / error screen, filed as an artifact. */
-export function ErrorState({ reset }: { reset?: () => void }) {
+export function ErrorState({
+  reset,
+  notFound = false,
+}: {
+  reset?: () => void;
+  notFound?: boolean;
+}) {
   const [timestamp] = React.useState(
     () => new Date().toISOString().slice(0, 19).replace("T", " ") + "Z",
   );
@@ -21,23 +27,26 @@ export function ErrorState({ reset }: { reset?: () => void }) {
           className="absolute -top-3 right-6 text-[20px]"
         />
         <p className="text-display-lg-mobile md:text-display-lg text-on-surface font-display leading-none">
-          404
+          {notFound ? "404" : "Unavailable"}
         </p>
         <h1 className="text-headline-md text-on-surface font-display mt-2">
-          Page not accepted.
+          {notFound ? "Page not found." : "Something went wrong."}
         </h1>
         <p className="text-on-surface-variant text-body-md mx-auto mt-4 max-w-md font-mono">
-          Even our servers feel rejected. This page has been filed under &lsquo;does not
-          exist&rsquo;. Try again, or return to the wall.
+          {notFound
+            ? "This page doesn’t exist. Return to The Wall to browse rejections."
+            : "We couldn’t load this page. Try again, or return to The Wall."}
         </p>
 
         <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-          <Button onClick={() => reset?.()}>
-            <RotateCw className="size-4" />
-            Try Again
-          </Button>
+          {reset && (
+            <Button onClick={reset}>
+              <RotateCw className="size-4" />
+              Try again
+            </Button>
+          )}
           <Button variant="secondary" asChild>
-            <Link href="/">Return Home</Link>
+            <Link href="/">Back to The Wall</Link>
           </Button>
         </div>
 
@@ -47,7 +56,7 @@ export function ErrorState({ reset }: { reset?: () => void }) {
               Status
             </span>
             <span className="text-code-snippet text-on-surface-variant font-mono">
-              503 Service Unavailable
+              {notFound ? "Not found" : "Page could not load"}
             </span>
           </div>
           <div className="flex flex-col gap-1">

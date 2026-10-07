@@ -41,8 +41,7 @@ export default function FaqPage() {
           duly answered.
         </h1>
         <p className="text-body-lg text-on-surface-variant max-w-2xl font-mono leading-relaxed">
-          What {SITE.name} is, why it exists, who built it, and how the archive
-          stays safe.
+          Submitting, privacy, reports, and removing your post.
         </p>
       </header>
 

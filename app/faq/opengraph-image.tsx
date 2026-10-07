@@ -9,8 +9,7 @@ export default function Image() {
   return renderOgCard({
     eyebrow: "FAQ · THE FINE PRINT",
     title: "Questions, duly answered.",
-    subtitle:
-      "What it is, why it exists, who built it, and how the archive stays safe.",
+    subtitle: "Submitting, privacy, reports, and removing your post.",
     path: `${SITE.name}/faq`,
     stamps: [
       { label: "FILED", top: 90, left: 100, rotate: -12, fontSize: 30 },

@@ -28,7 +28,7 @@ export const run = internalMutation({
         company: "Ivy League U",
         category: "university" as const,
         text: "The Admissions Committee has carefully reviewed your application, and I am sorry to inform you that we are unable to offer you a place in this year's class.",
-        stamp: "GHOSTED" as const,
+        stamp: "REJECTED" as const,
       },
       {
         company: "The Grant Council",

@@ -154,6 +154,10 @@ export async function canvasToCompressedFile(
 
   const name = fileName.replace(/\.\w+$/, "") + ".jpg";
   const raw = new File([blob], name, { type: "image/jpeg" });
+  const controller = new AbortController();
+  // The worker imports its library from a CDN. Do not let that request hold
+  // the editor open indefinitely when the connection is slow or blocked.
+  const timer = setTimeout(() => controller.abort(), 10_000);
 
   try {
     // Keep rejection text legible while still shrinking the upload.
@@ -163,6 +167,7 @@ export async function canvasToCompressedFile(
       maxWidthOrHeight: 2000,
       initialQuality: 0.9,
       useWebWorker: true,
+      signal: controller.signal,
     });
     // browser-image-compression can hand back a Blob (esp. via web worker);
     // normalise to a real File so `z.instanceof(File)` + UploadThing accept it.
@@ -172,5 +177,7 @@ export async function canvasToCompressedFile(
   } catch {
     // If compression fails, upload the (already canvas-stripped) original.
     return raw;
+  } finally {
+    clearTimeout(timer);
   }
 }

@@ -19,8 +19,16 @@ let sessionId = "";
 let inflight: Promise<void> | null = null;
 const listeners = new Set<() => void>();
 
-function ensureFetched(): void {
-  if (sessionId || inflight || typeof window === "undefined") return;
+export async function retrySession(): Promise<string> {
+  if (sessionId || typeof window === "undefined") return sessionId;
+  if (inflight) {
+    await inflight;
+    if (!sessionId)
+      throw new Error(
+        "Couldn't prepare your session. Check your connection and try again.",
+      );
+    return sessionId;
+  }
   inflight = fetch("/api/session", { credentials: "same-origin" })
     .then((r) => (r.ok ? r.json() : null))
     .then((data: { sessionId?: string } | null) => {
@@ -35,11 +43,17 @@ function ensureFetched(): void {
     .finally(() => {
       inflight = null;
     });
+  await inflight;
+  if (!sessionId)
+    throw new Error(
+      "Couldn't prepare your session. Check your connection and try again.",
+    );
+  return sessionId;
 }
 
 function subscribe(onChange: () => void): () => void {
   listeners.add(onChange);
-  ensureFetched();
+  void retrySession().catch(() => undefined);
   return () => listeners.delete(onChange);
 }
 

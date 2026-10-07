@@ -1,5 +1,7 @@
 "use client";
 
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { Flag } from "lucide-react";
 
 import { formatRelativeTime } from "@/lib/format";
@@ -11,6 +13,9 @@ import { ReactionButton } from "./reaction-button";
 
 interface ArchiveLightboxProps {
   archive: Archive | null;
+  previewMode?: boolean;
+  onPrevious?: () => void;
+  onNext?: () => void;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onReport: (archive: Archive) => void;
@@ -20,6 +25,9 @@ interface ArchiveLightboxProps {
 /** Inspect view — the letter lifted off the wall and laid flat for reading. */
 export function ArchiveLightbox({
   archive,
+  previewMode = false,
+  onPrevious,
+  onNext,
   open,
   onOpenChange,
   onReport,
@@ -27,13 +35,30 @@ export function ArchiveLightbox({
 }: ArchiveLightboxProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent
+        className="max-h-[90dvh] max-w-2xl overflow-y-auto"
+        onKeyDown={(e) => {
+          if (
+            e.target instanceof HTMLElement &&
+            e.target.closest("input, textarea, select, [contenteditable]")
+          )
+            return;
+          if (e.key === "ArrowLeft" && onPrevious) {
+            e.preventDefault();
+            onPrevious();
+          }
+          if (e.key === "ArrowRight" && onNext) {
+            e.preventDefault();
+            onNext();
+          }
+        }}
+      >
         {archive && (
           <div className="relative flex flex-col gap-5">
             {/* No stamp here — the inspect view stays clean so the screenshot is
                 fully readable; stamps live on the board cards. */}
             <div className="border-outline-variant flex items-end justify-between gap-3 border-b border-dashed pr-8 pb-3">
-              <DialogTitle>{archive.company ?? "Anonymous"}</DialogTitle>
+              <DialogTitle>{archive.company ?? "Rejection"}</DialogTitle>
               <Badge variant="square">{CATEGORY_LABELS[archive.category]}</Badge>
             </div>
 
@@ -71,25 +96,63 @@ export function ArchiveLightbox({
                 {formatRelativeTime(archive.createdAt)}
                 {archive.displayName ? ` · ${archive.displayName}` : ""}
               </span>
-              <div className="flex items-center gap-5">
+              <div className="flex flex-wrap items-center justify-end gap-3">
                 <button
                   type="button"
+                  disabled={previewMode}
                   onClick={() => onReport(archive)}
                   className="text-secondary hover:text-primary flex items-center gap-1.5 transition-colors"
                 >
                   <Flag className="size-4" />
                   <span className="text-label-caps font-mono uppercase">Report</span>
                 </button>
-                <ReactionButton
-                  key={archive.id}
-                  count={archive.reactions}
-                  reacted={archive.reacted}
-                  optimistic
-                  onToggle={onReact ? () => onReact(archive.id) : undefined}
-                  className="gap-1.5 text-sm"
-                />
+                {!previewMode && (
+                  <ReactionButton
+                    key={archive.id}
+                    count={archive.reactions}
+                    reacted={archive.reacted}
+                    pending={archive.reactionPending}
+                    onToggle={onReact ? () => onReact(archive.id) : undefined}
+                    className="gap-1.5 text-sm"
+                  />
+                )}
               </div>
             </div>
+            {!previewMode && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={async () => {
+                  const url = `${window.location.origin}/?a=${archive.id}`;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Public link copied");
+                  } catch {
+                    window.prompt("Copy this public rejection link", url);
+                  }
+                }}
+              >
+                Share rejection
+              </Button>
+            )}
+            {(onPrevious || onNext) && (
+              <nav
+                aria-label="Browse rejections"
+                className="flex justify-between gap-3"
+              >
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={!onPrevious}
+                  onClick={onPrevious}
+                >
+                  Previous rejection
+                </Button>
+                <Button variant="ghost" size="sm" disabled={!onNext} onClick={onNext}>
+                  Next rejection
+                </Button>
+              </nav>
+            )}
           </div>
         )}
       </DialogContent>

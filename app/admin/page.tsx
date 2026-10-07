@@ -12,22 +12,26 @@ import { formatRelativeTime } from "@/lib/format";
 import { useArchiveSubmission } from "@/hooks/use-create-archive";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { requestJson } from "@/lib/request-json";
 import { ImageEditor } from "@/components/upload/image-editor/image-editor";
 import {
   ReportDetailDialog,
   type DetailBusy,
 } from "@/components/admin/report-detail-dialog";
 
-type AuthState = "checking" | "out" | "in";
+type AuthState = "checking" | "out" | "in" | "error";
 
 export default function AdminPage() {
   const [auth, setAuth] = React.useState<AuthState>("checking");
 
   React.useEffect(() => {
     fetch("/api/admin/session", { credentials: "same-origin" })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("Access check failed");
+        return r.json();
+      })
       .then((d: { authed?: boolean }) => setAuth(d.authed ? "in" : "out"))
-      .catch(() => setAuth("out"));
+      .catch(() => setAuth("error"));
   }, []);
 
   return (
@@ -35,6 +39,13 @@ export default function AdminPage() {
       {auth === "checking" ? (
         <div className="text-secondary flex items-center gap-2 font-mono text-sm">
           <Loader2 className="size-4 animate-spin" /> Checking access…
+        </div>
+      ) : auth === "error" ? (
+        <div className="text-secondary flex flex-col items-start gap-3 font-mono text-sm">
+          <p>Couldn&apos;t check access. Check your connection and try again.</p>
+          <Button variant="secondary" onClick={() => window.location.reload()}>
+            Try again
+          </Button>
         </div>
       ) : auth === "out" ? (
         <LoginGate onAuthed={() => setAuth("in")} />
@@ -68,7 +79,7 @@ function LoginGate({ onAuthed }: { onAuthed: () => void }) {
         toast.error(d?.error ?? "Login failed");
       }
     } catch {
-      toast.error("Network error");
+      toast.error("Couldn’t sign in. Check your connection and try again.");
     } finally {
       setBusy(false);
     }
@@ -81,11 +92,9 @@ function LoginGate({ onAuthed }: { onAuthed: () => void }) {
           <ShieldAlert className="size-5" />
           <span className="text-label-caps font-mono uppercase">Owner access</span>
         </div>
-        <h1 className="text-headline-sm text-on-surface font-display">
-          Moderation
-        </h1>
+        <h1 className="text-headline-sm text-on-surface font-display">Moderation</h1>
         <p className="text-secondary mt-1 mb-6 font-mono text-xs">
-          Enter the owner password to review reported artifacts.
+          Enter the owner password to review reported posts.
         </p>
         <form onSubmit={submit} className="flex flex-col gap-4">
           <input
@@ -97,7 +106,7 @@ function LoginGate({ onAuthed }: { onAuthed: () => void }) {
             className="text-body-md text-on-surface placeholder:text-outline border-outline-variant focus:border-primary border-0 border-b-2 bg-transparent px-0 py-2 font-mono transition-colors focus:ring-0 focus:outline-none"
           />
           <Button type="submit" shape="sheet" disabled={!password || busy}>
-            {busy ? <Loader2 className="size-4 animate-spin" /> : "Enter"}
+            {busy ? "Signing in…" : "Sign in"}
           </Button>
         </form>
       </div>
@@ -106,6 +115,9 @@ function LoginGate({ onAuthed }: { onAuthed: () => void }) {
 }
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
+  const [cleanup, setCleanup] = React.useState<{ count: number; more: boolean } | null>(
+    null,
+  );
   const [items, setItems] = React.useState<OpenReportItem[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState<Record<string, "remove" | "dismiss">>(
@@ -122,6 +134,9 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   const { uploadImage } = useArchiveSubmission();
 
   const load = React.useCallback(() => {
+    void requestJson<{ count: number; more: boolean }>("/api/admin/cleanup")
+      .then(setCleanup)
+      .catch(() => setCleanup(null));
     // Promise-callback form (not async/await): setState lands inside .then/.catch,
     // which is the sanctioned shape for effect-triggered fetches.
     fetch("/api/admin/reports", { credentials: "same-origin" })
@@ -155,14 +170,47 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
         credentials: "same-origin",
         body: JSON.stringify({ archiveId }),
       });
-      if (!res.ok) throw new Error(String(res.status));
+      if (res.status === 401) {
+        onSignOut();
+        toast.error("Your session expired. Sign in again.");
+        return;
+      }
+      if (!res.ok)
+        throw new Error(
+          res.status === 429
+            ? "Too many attempts. Wait a minute, then try again."
+            : "Couldn’t update this post. Try again.",
+        );
+      const result = (await res.json()) as {
+        removed?: boolean;
+        resolved?: number;
+        screenshotCleanup?: string;
+      };
+      if (kind === "remove" && !result.removed) {
+        toast("This post is no longer available.");
+        load();
+        return;
+      }
       // Drop the actioned item from the list, and close the detail dialog if it
       // was showing this one.
       setItems((cur) => cur?.filter((it) => it.archiveId !== archiveId) ?? cur);
       setDetailId((cur) => (cur === archiveId ? null : cur));
-      toast.success(kind === "remove" ? "Removed from the wall" : "Reports dismissed");
-    } catch {
-      toast.error(kind === "remove" ? "Couldn't remove that" : "Couldn't dismiss");
+      toast.success(
+        kind === "remove" ? "Post removed from the wall" : "Reports dismissed",
+        {
+          description:
+            result.screenshotCleanup === "pending"
+              ? "Screenshot cleanup is pending and will be retried."
+              : undefined,
+        },
+      );
+      load();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Couldn’t update this post. Try again.",
+      );
     } finally {
       setPending((p) => {
         const next = { ...p };
@@ -197,7 +245,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   };
 
   // Step 2: the editor returns a redacted File. Upload it (regenerating dims +
-  // blur), then swap it in server-side — which also deletes the original file.
+  // blur), then swap it in server-side and queue cleanup of the original file.
   const finishRedact = async (processed: File) => {
     const id = detailId;
     setEditingFile(null); // unmount editor → the detail dialog reopens
@@ -211,9 +259,28 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
         credentials: "same-origin",
         body: JSON.stringify({ archiveId: id, image }),
       });
-      if (!res.ok) throw new Error(String(res.status));
-      toast.success("Image redacted", {
-        description: "The original screenshot was deleted.",
+      if (res.status === 401) {
+        onSignOut();
+        toast.error("Your session expired. Sign in again.");
+        return;
+      }
+      if (!res.ok) throw new Error("Couldn’t save the redacted image. Try again.");
+      const result = (await res.json()) as {
+        replaced?: boolean;
+        screenshotCleanup?: string;
+      };
+      if (!result.replaced) {
+        toast("This post is no longer available for editing.");
+        load();
+        return;
+      }
+      toast.success("Redacted image saved", {
+        description:
+          result.screenshotCleanup === "pending"
+            ? "Original screenshot cleanup is pending and will be retried."
+            : result.screenshotCleanup === "confirmed"
+              ? "Original screenshot cleanup confirmed."
+              : undefined,
       });
       load(); // refresh so the dialog shows the redacted image
     } catch {
@@ -224,8 +291,12 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
   };
 
   const signOut = async () => {
-    await fetch("/api/admin/login", { method: "DELETE", credentials: "same-origin" });
-    onSignOut();
+    try {
+      await requestJson("/api/admin/login", { method: "DELETE" });
+      onSignOut();
+    } catch {
+      toast.error("Couldn't sign out. Check your connection and try again.");
+    }
   };
 
   const detail = items?.find((it) => it.archiveId === detailId) ?? null;
@@ -240,12 +311,12 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-headline-md text-on-surface font-display">
-            Reported artifacts
+            Reported posts
           </h1>
           <p className="text-secondary mt-1 font-mono text-xs">
             {items === null
               ? "Loading…"
-              : `${items.length} artifact${items.length === 1 ? "" : "s"} with open reports`}
+              : `${items.length} post${items.length === 1 ? "" : "s"} with open reports`}
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -258,6 +329,20 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
         </div>
       </div>
 
+      {cleanup === null ? (
+        <p className="text-secondary font-mono text-xs">
+          Screenshot cleanup status is unavailable. Refresh to check again.
+        </p>
+      ) : (
+        cleanup.count > 0 && (
+          <p role="status" className="text-error font-mono text-sm">
+            {cleanup.count}
+            {cleanup.more ? "+" : ""} screenshot cleanup job
+            {cleanup.count === 1 ? "" : "s"} pending. Failed cleanup is retried
+            automatically.
+          </p>
+        )
+      )}
       {error && (
         <p className="border-error/40 text-error border border-dashed p-3 font-mono text-xs">
           {error}
@@ -267,9 +352,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       {items !== null && items.length === 0 && (
         <div className="paper-card -rotate-1 p-10 text-center">
           <p className="text-headline-sm text-on-surface font-display">All clear.</p>
-          <p className="text-secondary mt-2 font-mono text-sm">
-            No open reports. The wall is clean.
-          </p>
+          <p className="text-secondary mt-2 font-mono text-sm">No open reports.</p>
           <Button asChild variant="ghost" size="sm" className="mt-4">
             <Link href="/">
               <ArrowLeft className="size-4" /> Back to the wall
@@ -309,6 +392,7 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
       {editingFile && (
         <ImageEditor
           file={editingFile}
+          completeLabel="Save redacted image"
           onCancel={() => setEditingFile(null)}
           onComplete={(processed) => void finishRedact(processed)}
         />
@@ -344,7 +428,7 @@ function ReportRow({
       <button
         type="button"
         onClick={onOpen}
-        aria-label={`Inspect report on ${a?.company ?? "this artifact"}`}
+        aria-label={`Inspect report on ${a?.company ?? "this post"}`}
         className="focus-visible:ring-ring flex min-w-0 flex-1 cursor-pointer flex-col gap-4 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 sm:flex-row sm:items-start"
       >
         {/* Preview */}
@@ -365,11 +449,13 @@ function ReportRow({
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-on-surface font-mono text-sm font-bold">
-              {a?.company ?? "Anonymous"}
+              {a?.company ?? "Rejection"}
             </span>
             {a && <Badge variant="square">{CATEGORY_LABELS[a.category]}</Badge>}
             {a?.status === "removed" && (
-              <span className="text-error font-mono text-[11px] uppercase">already removed</span>
+              <span className="text-error font-mono text-[11px] uppercase">
+                already removed
+              </span>
             )}
           </div>
 
@@ -385,7 +471,10 @@ function ReportRow({
             </span>
             <span className="text-secondary font-mono text-xs">
               {Object.entries(reasonCounts)
-                .map(([r, n]) => `${REPORT_REASON_LABELS[r as keyof typeof REPORT_REASON_LABELS] ?? r}${n > 1 ? ` ×${n}` : ""}`)
+                .map(
+                  ([r, n]) =>
+                    `${REPORT_REASON_LABELS[r as keyof typeof REPORT_REASON_LABELS] ?? r}${n > 1 ? ` ×${n}` : ""}`,
+                )
                 .join(" · ")}
             </span>
             <span className="text-secondary font-mono text-xs" suppressHydrationWarning>
@@ -405,7 +494,9 @@ function ReportRow({
           onClick={onRemove}
         >
           {pending === "remove" ? (
-            <Loader2 className="size-4 animate-spin" />
+            <>
+              <Loader2 className="size-4 animate-spin" /> Removing…
+            </>
           ) : (
             <>
               <Trash2 className="size-4" /> Remove
@@ -420,10 +511,12 @@ function ReportRow({
           onClick={onDismiss}
         >
           {pending === "dismiss" ? (
-            <Loader2 className="size-4 animate-spin" />
+            <>
+              <Loader2 className="size-4 animate-spin" /> Dismissing…
+            </>
           ) : (
             <>
-              <Check className="size-4" /> Dismiss
+              <Check className="size-4" /> Dismiss reports
             </>
           )}
         </Button>

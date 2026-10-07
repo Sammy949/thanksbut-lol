@@ -1,5 +1,7 @@
 "use client";
 
+import { requestJson } from "@/lib/request-json";
+import { retrySession } from "./use-session-id";
 import type { ReportReason } from "@/types/report";
 
 /**
@@ -12,12 +14,11 @@ import type { ReportReason } from "@/types/report";
  */
 export function useReport() {
   return async (archiveId: string, reason: ReportReason): Promise<void> => {
-    const res = await fetch("/api/report", {
+    await retrySession();
+    await requestJson("/api/report", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      credentials: "same-origin",
       body: JSON.stringify({ archiveId, reason }),
     });
-    if (!res.ok) throw new Error(`Report failed: ${res.status}`);
   };
 }

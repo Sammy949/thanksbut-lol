@@ -9,7 +9,7 @@ import { MaskingTape } from "@/components/archive/decorations";
 import { useSubmissionTrigger } from "@/components/upload/submission-context";
 
 /** Garamond hero with scattered ink stamps and a taped-up archive count. */
-export function Hero({ count }: { count: number }) {
+export function Hero({ count, sample = false }: { count?: number; sample?: boolean }) {
   const trigger = useSubmissionTrigger();
 
   return (
@@ -35,9 +35,8 @@ export function Hero({ count }: { count: number }) {
         Thanks, but…
       </h1>
       <p className="text-body-lg text-on-surface-variant relative z-10 mb-10 max-w-2xl font-mono leading-relaxed">
-        The internet&apos;s archive of rejection emails. We treat every
-        &ldquo;we&apos;ve decided to move in a different direction&rdquo; as a curated
-        artefact of the hustle.
+        A public wall of rejection emails. A place for every &ldquo;we&apos;ve decided
+        to move in a different direction&rdquo; you&apos;ve received.
       </p>
 
       <div className="relative z-10 inline-block">
@@ -45,7 +44,11 @@ export function Hero({ count }: { count: number }) {
         <div className="paper-card text-on-surface flex rotate-1 items-center gap-3 px-6 py-4">
           <ArchiveIcon className="text-primary size-5" />
           <span className="text-body-md font-mono font-bold">
-            {formatCount(count)} rejections archived
+            {sample
+              ? "Sample archive"
+              : count === undefined
+                ? "Loading archive count…"
+                : `${formatCount(count)} rejections archived`}
           </span>
         </div>
       </div>

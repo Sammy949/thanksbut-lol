@@ -5,22 +5,22 @@ const GUIDELINES = [
   {
     icon: Shield,
     title: "Privacy First",
-    body: "Scrub any personal info (names, emails, phones) from your screenshots. We love rejection, not doxxing.",
+    body: "Remove personal details from screenshots, text, and captions: names, email addresses, phone numbers, application IDs, and private links. Use black boxes for details that must be fully covered.",
   },
   {
     icon: BadgeCheck,
     title: "Real Rejections Only",
-    body: "Keep it authentic. The internet's hustle is more interesting than fiction.",
+    body: "Submit a genuine rejection you received. Don’t fabricate messages or post someone else’s private correspondence.",
   },
   {
     icon: Globe,
-    title: "All Industries Welcome",
-    body: "Tech, art, academia, dating—if it's a 'no', it's art.",
+    title: "Every field welcome",
+    body: "Jobs, scholarships, university places, and beyond. Choose Other if no category fits.",
   },
   {
     icon: Heart,
-    title: "Keep it Classy",
-    body: "We celebrate the hustle. No hate speech or harassment.",
+    title: "No harassment",
+    body: "No hate speech, harassment, or targeting individuals. Share the rejection without exposing or attacking the people involved.",
   },
 ];
 

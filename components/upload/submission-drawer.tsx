@@ -42,35 +42,11 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
   const [editingFile, setEditingFile] = React.useState<File | null>(null);
   const [submitting, setSubmitting] = React.useState(false);
   const [slowArchive, setSlowArchive] = React.useState(false);
-  const [uploadState, setUploadState] = React.useState<
-    "idle" | "uploading" | "done" | "error"
-  >("idle");
-
+  const [uploading, setUploading] = React.useState(false);
   const { uploadImage, createArchive } = useArchiveSubmission();
-  // Eager upload: the in-flight (or finished) upload for the current screenshot,
-  // keyed by the exact File so we can reuse it at submit time instead of
-  // re-uploading. Cleared/reset when the image changes or fails.
-  const uploadRef = React.useRef<{
-    file: File;
-    promise: Promise<ArchiveImage>;
-  } | null>(null);
-
-  const beginUpload = React.useCallback(
-    (file: File) => {
-      setUploadState("uploading");
-      const promise = uploadImage(file);
-      uploadRef.current = { file, promise };
-      promise.then(
-        () => setUploadState("done"),
-        () => {
-          setUploadState("error");
-          // Drop the failed upload so the next submit re-uploads cleanly.
-          if (uploadRef.current?.file === file) uploadRef.current = null;
-        },
-      );
-    },
-    [uploadImage],
-  );
+  // A completed upload is retained for retry if publication fails.
+  const uploadRef = React.useRef<{ file: File; image: ArchiveImage } | null>(null);
+  const submittingRef = React.useRef(false);
 
   const form = useForm<SubmissionValues>({
     resolver: zodResolver(submissionSchema),
@@ -91,10 +67,11 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
     setArchivedId(null);
     setManageToken(null);
     uploadRef.current = null;
-    setUploadState("idle");
+    setUploading(false);
   }, [form]);
 
   const handleOpenChange = (next: boolean) => {
+    if (!next && submittingRef.current) return;
     if (!next) resetAll();
     onOpenChange(next);
   };
@@ -105,27 +82,30 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
       return file ? URL.createObjectURL(file) : null;
     });
     form.setValue("image", file, { shouldValidate: true });
-    // Removing the screenshot invalidates any eager upload in flight.
+    // A removed screenshot must not reuse a previously completed upload.
     if (!file) {
       uploadRef.current = null;
-      setUploadState("idle");
+      setUploading(false);
     }
   };
 
   const onSubmit = async (data: SubmissionValues) => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     setSubmitting(true);
     setSlowArchive(false);
-    // If the round-trip drags (cold/distant Convex socket), reassure rather than
-    // look frozen. Convex will still complete the mutation when it reconnects.
+    // Elapsed time alone does not establish a cause or guarantee completion.
     const slowTimer = setTimeout(() => setSlowArchive(true), 7000);
     try {
       let image: ArchiveImage | undefined;
       if (data.image) {
-        // Reuse the in-flight eager upload when it matches; else upload now.
-        image =
-          uploadRef.current?.file === data.image
-            ? await uploadRef.current.promise
-            : await uploadImage(data.image);
+        if (uploadRef.current?.file === data.image) image = uploadRef.current.image;
+        else {
+          setUploading(true);
+          image = await uploadImage(data.image);
+          uploadRef.current = { file: data.image, image };
+          setUploading(false);
+        }
       }
 
       const created = await createArchive({
@@ -136,22 +116,29 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
         ...(data.caption ? { caption: data.caption } : {}),
         ...(data.displayName ? { displayName: data.displayName } : {}),
       });
+      form.reset(data);
       setArchivedId(created.id);
       setManageToken(created.manageToken);
       toast.success("Archived for the culture", {
         description: "Your rejection is now part of the wall.",
       });
-    } catch (err) {
-      const description =
-        err instanceof ConvexError
-          ? String(err.data)
-          : err instanceof Error
-            ? err.message
-            : "Please try again.";
-      toast.error("Couldn't archive that", { description });
+    } catch (error) {
+      if (error instanceof ConvexError && String(error.data).includes("expired")) {
+        setTab("compose");
+        uploadRef.current = null;
+        form.setError("image", {
+          message: "This upload expired. Remove the screenshot and choose it again.",
+        });
+      }
+      toast.error("Couldn't publish your submission", {
+        description:
+          "Your submission is still here. Check your connection and try again.",
+      });
     } finally {
       clearTimeout(slowTimer);
       setSlowArchive(false);
+      setUploading(false);
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
@@ -177,20 +164,26 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
             )}
           >
             <DialogPrimitive.Title className="sr-only">
-              Submit a rejection artifact
+              Submit a rejection
             </DialogPrimitive.Title>
 
             {archivedId ? (
               <SubmissionSuccess
                 id={archivedId}
-                category={values.category}
                 manageToken={manageToken}
-                onView={() => handleOpenChange(false)}
+                values={values}
+                preview={preview}
+                onView={() => {
+                  handleOpenChange(false);
+                  window.location.assign(`/?a=${archivedId}`);
+                }}
                 onShare={async () => {
                   const url = `${window.location.origin}/?a=${archivedId}`;
                   try {
                     await navigator.clipboard.writeText(url);
-                    toast.success("Link copied", { description: url });
+                    toast.success("Link copied", {
+                      description: "Public link copied.",
+                    });
                   } catch {
                     toast.error("Couldn't copy the link", {
                       description: "Copy it manually: " + url,
@@ -208,13 +201,16 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 <div className="flex items-start justify-between px-5 py-4">
                   <div>
                     <h2 className="text-headline-md text-on-surface font-display">
-                      Submit Artifact
+                      Submit a rejection
                     </h2>
                     <p className="text-body-md text-on-surface-variant font-body mt-0.5">
-                      Archive your rejection for the culture.
+                      No account needed. Your submission will be public.
                     </p>
                   </div>
-                  <DialogPrimitive.Close className="text-outline hover:text-on-surface flex size-9 items-center justify-center rounded-none transition-colors">
+                  <DialogPrimitive.Close
+                    disabled={submitting}
+                    className="text-outline hover:text-on-surface flex size-9 items-center justify-center rounded-none transition-colors"
+                  >
                     <X className="size-5" />
                     <span className="sr-only">Close</span>
                   </DialogPrimitive.Close>
@@ -252,35 +248,26 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 </Tabs>
 
                 <div className="border-outline-variant border-t p-5">
-                  {values.image && uploadState !== "idle" && (
-                    <p className="text-code-snippet font-mono mb-3 flex items-center justify-center gap-1.5 text-center">
-                      {uploadState === "uploading" && (
-                        <span className="text-secondary inline-flex items-center gap-1.5">
-                          <Loader2 className="size-3.5 animate-spin" />
-                          Uploading screenshot…
-                        </span>
-                      )}
-                      {uploadState === "done" && (
-                        <span className="text-primary">Screenshot uploaded ✓</span>
-                      )}
-                      {uploadState === "error" && (
-                        <span className="text-secondary">
-                          Upload will retry when you archive.
-                        </span>
-                      )}
-                    </p>
-                  )}
+                  <p className="text-code-snippet text-secondary mb-3 font-mono">
+                    Check screenshots, text, and captions for personal details. Archive
+                    Yours uploads your screenshot and publishes your submission.
+                  </p>
                   <Button
                     shape="sheet"
                     className="w-full"
                     disabled={submitting}
                     onClick={() =>
-                      form.handleSubmit(onSubmit, () =>
-                        toast.error("Almost there", {
-                          description:
-                            "Add a screenshot or some rejection text first.",
-                        }),
-                      )()
+                      form.handleSubmit(onSubmit, (errors) => {
+                        setTab("compose");
+                        if (errors.text) setShowText(true);
+                        toast.error("Check your submission", {
+                          description: "Fix the highlighted fields, then try again.",
+                        });
+                        const field = (
+                          ["text", "company", "caption", "displayName"] as const
+                        ).find((name) => errors[name]);
+                        if (field) requestAnimationFrame(() => form.setFocus(field));
+                      })()
                     }
                   >
                     {submitting ? (
@@ -307,16 +294,14 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                 <Loader2 className="text-primary size-10 animate-spin" />
                 <div>
                   <p className="text-headline-sm text-on-surface font-display">
-                    {uploadState === "uploading"
-                      ? "Uploading screenshot…"
-                      : "Archiving…"}
+                    {uploading ? "Uploading screenshot…" : "Archiving…"}
                   </p>
-                  <p className="text-code-snippet text-on-surface-variant font-mono mt-1">
-                    {uploadState === "uploading"
+                  <p className="text-code-snippet text-on-surface-variant mt-1 font-mono">
+                    {uploading
                       ? "Big screenshots can take a few seconds."
                       : slowArchive
-                        ? "Taking longer than usual — waking the server. Hang tight, it'll go through."
-                        : "Filing it for the culture."}
+                        ? "This is taking longer than usual. Your submission is still pending."
+                        : "Publishing your submission."}
                   </p>
                 </div>
               </div>
@@ -333,9 +318,8 @@ export function SubmissionDrawer({ open, onOpenChange }: SubmissionDrawerProps) 
                   onPickImage(processed);
                   setEditingFile(null);
                   setTab("compose"); // back to compose so they can add a detail or two
-                  beginUpload(processed); // eager: start uploading in the background
                   toast.success("Screenshot ready", {
-                    description: "Add a detail or two, then archive it.",
+                    description: "Review your submission, then choose Archive Yours.",
                   });
                 }}
               />

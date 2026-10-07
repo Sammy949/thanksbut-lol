@@ -113,7 +113,9 @@ try {
     const errors = [];
     page.on("pageerror", (error) => errors.push(error.message));
     await page.goto(base);
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page
+      .getByRole("button", { name: /^(Continue to hide details|Use screenshot)$/ })
+      .click();
     const frame = page.getByRole("application");
     await frame.waitFor();
     const box = await frame.boundingBox();
@@ -131,8 +133,28 @@ try {
       await page.mouse.up();
     };
     await draw(0.2, 0.3, 0.2, 0.15);
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
-    await page.waitForFunction(() => !!window.saved);
+    await page
+      .getByRole("button", { name: /^(Continue to hide details|Use screenshot)$/ })
+      .click();
+    await page
+      .waitForFunction(() => !!window.saved)
+      .catch(async (error) => {
+        await page.screenshot({ path: path.join(output, "failed-save.png") });
+        console.error(
+          "Save diagnostics:",
+          await page.locator("body").innerText(),
+          await page
+            .getByRole("button", { name: "Use screenshot", exact: true })
+            .evaluate((el) => ({
+              disabled: el.disabled,
+              rect: JSON.stringify(el.getBoundingClientRect()),
+              html: el.outerHTML,
+            })),
+          errors,
+          output,
+        );
+        throw error;
+      });
     const contrast = await page.evaluate(() => {
       const c = window.saved,
         ctx = c.getContext("2d");
@@ -153,13 +175,17 @@ try {
       "saved blur shifted or failed",
     );
     await page.reload();
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page
+      .getByRole("button", { name: /^(Continue to hide details|Use screenshot)$/ })
+      .click();
     await draw(0.2, 0.3, 0.2, 0.15);
-    await page.getByRole("button", { name: "Black", exact: true }).click();
+    await page.getByRole("button", { name: "Black box", exact: true }).click();
     await page.screenshot({
       path: path.join(output, "editor-" + viewport.width + ".png"),
     });
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page
+      .getByRole("button", { name: /^(Continue to hide details|Use screenshot)$/ })
+      .click();
     await page.waitForFunction(() => !!window.saved);
     const saved = await page.evaluate(() => {
       const c = window.saved,
@@ -184,7 +210,9 @@ try {
       viewport.width + "px: crop, draw, blur/black compressed exports aligned",
     );
     await page.reload();
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page
+      .getByRole("button", { name: /^(Continue to hide details|Use screenshot)$/ })
+      .click();
     const second = await frame.boundingBox();
     await page.mouse.move(
       second.x + second.width * 0.2,
@@ -199,7 +227,9 @@ try {
     await page.mouse.up();
     await page.getByRole("button", { name: "Back to crop" }).click();
     await page.getByRole("button", { name: "1:1", exact: true }).click();
-    await page.getByRole("button", { name: "Continue", exact: true }).click();
+    await page
+      .getByRole("button", { name: /^(Continue to hide details|Use screenshot)$/ })
+      .click();
     assert.equal(await frame.locator("div.absolute").count(), 0);
     console.log(viewport.width + "px: recropping clears stale boxes");
     await page.close();

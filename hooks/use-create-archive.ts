@@ -8,10 +8,8 @@ import { getImageDimensions, generateBlurDataUrl } from "@/lib/image";
 import type { ArchiveImage } from "@/types/archive";
 
 /**
- * Submission primitives, split so the screenshot can be uploaded eagerly (in the
- * background, right after the editor) and the archive created later — instead of
- * doing both on the final tap. `uploadImage` resolves to the persisted image
- * payload; `createArchive` is the Convex mutation.
+ * Submission primitives. The drawer uploads the prepared screenshot only on
+ * Archive Yours, then publishes it. Admin redaction also uses uploadImage.
  */
 export function useArchiveSubmission() {
   const createArchive = useMutation(api.archives.create);
@@ -25,10 +23,13 @@ export function useArchiveSubmission() {
     ]);
 
     const result = uploaded?.[0];
-    if (!result) throw new Error("Upload failed — no file came back from UploadThing.");
+    if (!result)
+      throw new Error(
+        "Couldn’t upload your screenshot. Check your connection and try again.",
+      );
 
     const url = result.ufsUrl ?? result.url ?? result.serverData?.url;
-    if (!url) throw new Error("Upload finished but returned no file URL.");
+    if (!url) throw new Error("Couldn’t confirm your screenshot upload. Try again.");
 
     // Only include optional fields when defined — Convex rejects explicit undefined.
     return {

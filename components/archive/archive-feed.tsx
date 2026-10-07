@@ -13,6 +13,9 @@ import { ArchiveLoading } from "./archive-loading";
 
 interface ArchiveFeedProps {
   archives: Archive[];
+  previewMode?: boolean;
+  sharedUnavailable?: boolean;
+  sharedLoading?: boolean;
   /**
    * Live mode (all optional). When `onCategoryChange` is given the feed is
    * controlled by the parent (server-side filtering + pagination); otherwise it
@@ -41,6 +44,9 @@ interface ArchiveFeedProps {
  */
 export function ArchiveFeed({
   archives,
+  previewMode = false,
+  sharedUnavailable = false,
+  sharedLoading = false,
   category: categoryProp,
   onCategoryChange,
   onReact,
@@ -110,10 +116,25 @@ export function ArchiveFeed({
     return () => observer.disconnect();
   }, [hasMore]);
 
+  const current = active
+    ? (archives.find((a) => a.id === active.id) ??
+      (deepLinked?.id === active.id ? deepLinked : active))
+    : null;
+  const activeIndex = filtered.findIndex((a) => a.id === active?.id);
   return (
     <section className="flex flex-col gap-10 pt-2 pb-24">
       <CategoryFilters value={category} onChange={setCategory} />
 
+      {sharedUnavailable && (
+        <p role="status" className="text-secondary px-5 text-center font-mono text-sm">
+          This shared rejection is no longer available. Browse The Wall below.
+        </p>
+      )}
+      {sharedLoading && (
+        <p role="status" className="text-secondary px-5 text-center font-mono text-sm">
+          Loading shared rejection…
+        </p>
+      )}
       {filtered.length > 0 ? (
         <ArchiveWall
           archives={filtered}
@@ -124,7 +145,7 @@ export function ArchiveFeed({
       ) : loading ? (
         <ArchiveLoading />
       ) : (
-        <EmptyState />
+        <EmptyState category={category} onClear={() => setCategory(null)} />
       )}
 
       {onLoadMore && hasMore && (
@@ -138,10 +159,19 @@ export function ArchiveFeed({
       )}
 
       <ArchiveLightbox
-        archive={active}
+        archive={current}
         open={lightboxOpen}
         onOpenChange={setLightboxOpen}
-        onReact={onReact}
+        onReact={previewMode ? undefined : onReact}
+        previewMode={previewMode}
+        onPrevious={
+          activeIndex > 0 ? () => handleOpen(filtered[activeIndex - 1]) : undefined
+        }
+        onNext={
+          activeIndex >= 0 && activeIndex < filtered.length - 1
+            ? () => handleOpen(filtered[activeIndex + 1])
+            : undefined
+        }
         onReport={(archive) => {
           setLightboxOpen(false);
           handleReport(archive);

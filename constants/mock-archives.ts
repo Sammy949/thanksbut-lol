@@ -38,7 +38,7 @@ export const MOCK_ARCHIVES: Archive[] = [
     company: "Ivy League U",
     category: "university",
     text: "The Admissions Committee has carefully reviewed your application, and I am sorry to inform you that we are unable to offer you a place in this year's class.",
-    stamp: "GHOSTED",
+    stamp: "REJECTED",
     reactions: 45,
     createdAt: now - 1 * DAY,
   },

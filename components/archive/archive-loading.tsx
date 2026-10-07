@@ -2,15 +2,15 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 const ROTATIONS = [-2, 2, 1.5, -3, 1, -1.5];
 
-/** Loading state: "Retrieving artifacts…" + a skeleton paper board. */
+/** Loading state: "Loading rejections…" + a skeleton paper board. */
 export function ArchiveLoading() {
   return (
     <div className="mx-auto w-full max-w-[1120px] px-5 py-12 md:px-16">
-      <h1 className="text-headline-md text-on-surface-variant font-display mb-1">
-        Retrieving artifacts…
-      </h1>
+      <h2 className="text-headline-md text-on-surface-variant font-display mb-1">
+        Loading rejections…
+      </h2>
       <p className="text-code-snippet text-secondary mb-8 font-mono">
-        Querying the basement archives
+        Retrieving the wall
       </p>
 
       <div className="columns-1 gap-x-8 sm:columns-2 lg:columns-3">

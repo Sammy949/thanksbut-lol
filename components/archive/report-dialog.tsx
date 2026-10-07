@@ -26,7 +26,7 @@ const REASONS = [
 interface ReportDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Live mode: persist the report. When omitted, the dialog only toasts. */
+  /** Live mode: persist the report. Omitted on the sample wall. */
   onSubmit?: (reason: ReportReason) => void | Promise<void>;
 }
 
@@ -38,13 +38,8 @@ export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps
   const handleSubmit = async () => {
     if (!reason || submitting) return;
 
-    // Mock mode (no handler): nothing to persist, just acknowledge and close.
     if (!onSubmit) {
-      onOpenChange(false);
-      setReason("");
-      toast.success("Report received", {
-        description: "Thanks for helping keep the archive clean.",
-      });
+      toast("Reports are unavailable on the sample wall.");
       return;
     }
 
@@ -54,12 +49,12 @@ export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps
       onOpenChange(false);
       setReason("");
       toast.success("Report received", {
-        description: "Thanks for helping keep the archive clean.",
+        description: "This post has been flagged for review.",
       });
-    } catch {
+    } catch (error) {
       // Keep the dialog open so the reason isn't lost — let them retry.
       toast.error("Couldn't file that report", {
-        description: "Please try again in a moment.",
+        description: error instanceof Error ? error.message : "Please try again.",
       });
     } finally {
       setSubmitting(false);
@@ -67,13 +62,22 @@ export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!submitting) {
+          onOpenChange(next);
+          if (!next) setReason("");
+        }
+      }}
+    >
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Report Artifact</DialogTitle>
+          <DialogTitle>Report rejection</DialogTitle>
           <DialogDescription>
-            Help us maintain the integrity of the archive. What is wrong with this
-            submission?
+            {onSubmit
+              ? "Why are you reporting this post?"
+              : "Reports are unavailable on the sample wall."}
           </DialogDescription>
         </DialogHeader>
 
@@ -98,10 +102,10 @@ export function ReportDialog({ open, onOpenChange, onSubmit }: ReportDialogProps
           <Button
             size="sm"
             shape="sheet"
-            disabled={!reason || submitting}
+            disabled={!onSubmit || !reason || submitting}
             onClick={handleSubmit}
           >
-            {submitting ? "Submitting…" : "Submit"}
+            {submitting ? "Sending report…" : "Send report"}
           </Button>
         </DialogFooter>
       </DialogContent>

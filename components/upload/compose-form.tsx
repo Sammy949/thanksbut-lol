@@ -1,12 +1,11 @@
 "use client";
 
 import * as React from "react";
-import Image from "next/image";
 import { type useForm, Controller } from "react-hook-form";
 import { UploadCloud, ChevronDown, Trash2 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
-import { type SubmissionValues } from "@/lib/submission-schema";
+import { imageFileSchema, type SubmissionValues } from "@/lib/submission-schema";
 import { CATEGORIES } from "@/constants/categories";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -43,12 +42,12 @@ export function ComposeForm({
       {/* Image dropzone — primary */}
       <div className="flex flex-col gap-2">
         {preview ? (
-          <div className="border-outline-variant relative aspect-[4/3] w-full overflow-hidden rounded-none border">
-            <Image
+          <div className="border-outline-variant relative w-full overflow-hidden rounded-none border">
+            {/* eslint-disable-next-line @next/next/no-img-element -- local full-ratio screenshot */}
+            <img
               src={preview}
               alt="Screenshot preview"
-              fill
-              className="object-cover"
+              className="max-h-80 w-full object-contain"
             />
             <button
               type="button"
@@ -63,6 +62,7 @@ export function ComposeForm({
           <>
             <button
               type="button"
+              aria-describedby={error ? "image-error" : undefined}
               onClick={() => fileInputRef.current?.click()}
               className="border-outline-variant bg-surface-bright hover:bg-surface-container-low group flex w-full cursor-pointer flex-col items-center justify-center gap-4 rounded-none border-2 border-dashed p-8 text-center transition-colors"
             >
@@ -71,10 +71,10 @@ export function ComposeForm({
               </div>
               <div>
                 <p className="text-body-md text-on-background font-body">
-                  Upload Screenshot
+                  Choose screenshot
                 </p>
                 <p className="text-code-snippet text-secondary font-body mt-1">
-                  PNG, JPG up to 5MB
+                  PNG, JPG, or WebP up to 8MB
                 </p>
               </div>
             </button>
@@ -86,35 +86,72 @@ export function ComposeForm({
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 e.target.value = "";
-                if (file) onEditImage(file);
+                if (file) {
+                  const checked = imageFileSchema.safeParse(file);
+                  if (!checked.success)
+                    form.setError("image", {
+                      message: checked.error.issues[0].message,
+                    });
+                  else {
+                    form.clearErrors("image");
+                    onEditImage(file);
+                  }
+                }
               }}
             />
           </>
         )}
-        {error && <p className="text-code-snippet text-primary font-body">{error}</p>}
+        {error && (
+          <p
+            id="image-error"
+            role="alert"
+            className="text-code-snippet text-primary font-body"
+          >
+            {error}
+          </p>
+        )}
 
         {/* Text fallback — progressive reveal */}
         {showText ? (
-          <Textarea
-            rows={4}
-            placeholder="Paste the crushing blow here…"
-            className="mt-2"
-            {...form.register("text")}
-          />
+          <Field
+            name="text"
+            label="Rejection text"
+            error={form.formState.errors.text?.message}
+          >
+            <Textarea
+              id="text"
+              aria-invalid={Boolean(form.formState.errors.text)}
+              aria-describedby={form.formState.errors.text ? "text-error" : undefined}
+              rows={4}
+              placeholder="Paste the rejection email"
+              className="mt-2"
+              {...form.register("text")}
+            />
+          </Field>
         ) : (
           <button
             type="button"
             onClick={onRevealText}
             className="text-code-snippet text-secondary hover:text-on-surface font-body mt-1 inline-flex items-center gap-1 self-start"
           >
-            no screenshot? add text
+            Paste text instead
             <ChevronDown className="size-3.5" />
           </button>
         )}
       </div>
 
-      <Field label="Company (optional)">
-        <Input placeholder="e.g. Acme Corp" {...form.register("company")} />
+      <Field
+        name="company"
+        label="Organisation (optional)"
+        error={form.formState.errors.company?.message}
+      >
+        <Input
+          placeholder="Company, university, or organisation"
+          id="company"
+          aria-invalid={Boolean(form.formState.errors.company)}
+          aria-describedby={form.formState.errors.company ? "company-error" : undefined}
+          {...form.register("company")}
+        />
       </Field>
 
       <div className="flex flex-col gap-3">
@@ -147,17 +184,33 @@ export function ComposeForm({
         />
       </div>
 
-      <Field label="Caption (optional)">
+      <Field
+        name="caption"
+        label="Caption (optional)"
+        error={form.formState.errors.caption?.message}
+      >
         <Textarea
           rows={2}
-          placeholder="Context makes it art…"
+          placeholder="Add context, if you’d like"
+          id="caption"
+          aria-invalid={Boolean(form.formState.errors.caption)}
+          aria-describedby={form.formState.errors.caption ? "caption-error" : undefined}
           {...form.register("caption")}
         />
       </Field>
 
-      <Field label="Display name (optional)">
+      <Field
+        name="displayName"
+        label="Display name (optional)"
+        error={form.formState.errors.displayName?.message}
+      >
         <Input
-          placeholder="Stay anonymous, or sign it"
+          placeholder="Leave blank to post without a name"
+          id="displayName"
+          aria-invalid={Boolean(form.formState.errors.displayName)}
+          aria-describedby={
+            form.formState.errors.displayName ? "displayName-error" : undefined
+          }
           {...form.register("displayName")}
         />
       </Field>
@@ -165,11 +218,26 @@ export function ComposeForm({
   );
 }
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+function Field({
+  name,
+  label,
+  error,
+  children,
+}: {
+  name: string;
+  label: string;
+  error?: string;
+  children: React.ReactNode;
+}) {
   return (
     <div className="flex flex-col gap-2">
-      <Label>{label}</Label>
+      <Label htmlFor={name}>{label}</Label>
       {children}
+      {error && (
+        <p id={`${name}-error`} role="alert" className="text-error font-body text-sm">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

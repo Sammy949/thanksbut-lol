@@ -12,16 +12,7 @@ interface ArchiveWallProps {
 
 // Decorative pools. Every card draws one stamp + tilt + pin/tape so the board
 // reads as a hand-pinned evidence wall rather than a tidy grid.
-const STAMPS = [
-  "REJECTED",
-  "GHOSTED",
-  "DENIED",
-  "NO THANKS",
-  "VOID",
-  "NOPE",
-  "PASS",
-  "DECLINED",
-];
+const STAMPS = ["REJECTED", "DENIED", "NO THANKS", "VOID", "NOPE", "PASS", "DECLINED"];
 const DECORATIONS: CardDecoration[] = ["pin", "tape", "clip", "none"];
 const MAX_TILT = 4; // degrees, both directions — relatively random, never extreme
 
@@ -51,12 +42,7 @@ function hashId(seed: string): number {
  * Stamp, tilt and decoration are derived per-card from its id, so they're
  * randomly distributed yet stable across renders.
  */
-export function ArchiveWall({
-  archives,
-  onOpen,
-  onReport,
-  onReact,
-}: ArchiveWallProps) {
+export function ArchiveWall({ archives, onOpen, onReport, onReact }: ArchiveWallProps) {
   return (
     // `w-full` is load-bearing: the parent <section> is a flexbox, and `mx-auto`
     // on a flex item disables the default stretch — without an explicit width the
@@ -65,7 +51,8 @@ export function ArchiveWall({
     <div className="mx-auto w-full max-w-[1120px] columns-1 gap-x-8 px-5 sm:columns-2 md:px-16 lg:columns-3">
       {archives.map((archive) => {
         const stamp = STAMPS[hashId(archive.id + "stamp") % STAMPS.length];
-        const decoration = DECORATIONS[hashId(archive.id + "deco") % DECORATIONS.length];
+        const decoration =
+          DECORATIONS[hashId(archive.id + "deco") % DECORATIONS.length];
         // Continuous tilt in [-MAX_TILT, +MAX_TILT), decorrelated from the stamp.
         const rotation = (hashId(archive.id + "tilt") % 800) / 100 - MAX_TILT;
         // Scatter the stamp: a random spot + its own random rotation (-18°..+17°).
