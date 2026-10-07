@@ -25,12 +25,13 @@ function utapi(): UTApi {
  */
 export async function deleteUploadedFiles(
   keys: string | string[],
+  provider?: Pick<UTApi, "deleteFiles">,
 ): Promise<boolean> {
   const list = (Array.isArray(keys) ? keys : [keys]).filter(Boolean);
   if (list.length === 0) return true;
   try {
-    await utapi().deleteFiles(list);
-    return true;
+    const result = await (provider ?? utapi()).deleteFiles(list);
+    return result.success;
   } catch {
     return false;
   }

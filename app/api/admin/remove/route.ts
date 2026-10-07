@@ -9,7 +9,7 @@ import { fetchMutation } from "convex/nextjs";
 
 import { api } from "@/lib/convex-api";
 import { requireAdmin } from "@/lib/admin-guard";
-import { deleteUploadedFiles } from "@/lib/uploadthing-admin";
+import { completeFileCleanup } from "@/lib/cleanup-response";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -35,12 +35,12 @@ export async function POST(req: Request) {
       archiveId,
       secret: guard.secret,
     });
-    // Purge the actual file too — the PII usually lives in the screenshot.
-    if (result.removed && result.imageKey) {
-      await deleteUploadedFiles(result.imageKey);
-    }
+    const screenshotCleanup = result.removed
+      ? await completeFileCleanup(result.imageKey, result.cleanupId, guard.secret, true)
+      : "not-needed";
+
     return NextResponse.json(
-      { removed: result.removed },
+      { removed: result.removed, screenshotCleanup },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch {

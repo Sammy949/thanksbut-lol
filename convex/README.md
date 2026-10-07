@@ -46,5 +46,12 @@ metadata is client supplied; upload ownership is not currently verified.
 Self-service deletion hard-deletes an archive and its reaction/report rows.
 Moderation removal hides the archive and resolves reports while retaining the
 archive row. Both return the image key for Next to attempt UploadThing cleanup;
-file cleanup is best effort. Image replacement returns the original key for the
+failed cleanup remains in the durable `fileCleanup` queue. Image replacement returns the original key for the
 same cleanup path.
+
+`cleanupJobs.ts` records cleanup in the removal/replacement transaction and
+tracks completed uploads until publication. `crons.ts` retries due cleanup every
+five minutes; `uploadCleanup.ts` performs storage deletion in the Node runtime.
+Set `UPLOADTHING_TOKEN` on Convex to the same UploadThing project as Next. Negative
+storage acknowledgements and exceptions retain the job with bounded backoff.
+Unpublished uploads expire after 24 hours; expired records prevent late attachment.

@@ -40,6 +40,16 @@ export const imageValidator = v.object({
 });
 
 export default defineSchema({
+  fileCleanup: defineTable({
+    key: v.string(),
+    attempts: v.number(),
+    nextAttemptAt: v.number(),
+    purpose: v.union(v.literal("unpublished"), v.literal("removed")),
+    cleanupStarted: v.optional(v.boolean()),
+    expired: v.optional(v.boolean()),
+  })
+    .index("by_key", ["key"])
+    .index("by_attempt", ["nextAttemptAt"]),
   archives: defineTable({
     category: categoryValidator,
     image: v.optional(imageValidator),

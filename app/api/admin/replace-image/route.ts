@@ -16,7 +16,7 @@ import { fetchMutation } from "convex/nextjs";
 
 import { api } from "@/lib/convex-api";
 import { requireAdmin } from "@/lib/admin-guard";
-import { deleteUploadedFiles } from "@/lib/uploadthing-admin";
+import { completeFileCleanup } from "@/lib/cleanup-response";
 import type { ArchiveImage } from "@/types/archive";
 
 export const dynamic = "force-dynamic";
@@ -63,15 +63,23 @@ export async function POST(req: Request) {
       image,
       secret: guard.secret,
     });
-    // Swap succeeded — purge the original file so the un-redacted image is gone.
-    if (result.replaced && result.oldImageKey) {
-      await deleteUploadedFiles(result.oldImageKey);
-    }
+    const screenshotCleanup = result.replaced
+      ? await completeFileCleanup(
+          result.oldImageKey,
+          result.cleanupId,
+          guard.secret,
+          true,
+        )
+      : "not-needed";
+
     return NextResponse.json(
-      { replaced: result.replaced },
+      { replaced: result.replaced, screenshotCleanup },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch {
-    return NextResponse.json({ error: "Could not replace the image." }, { status: 502 });
+    return NextResponse.json(
+      { error: "Could not replace the image." },
+      { status: 502 },
+    );
   }
 }
