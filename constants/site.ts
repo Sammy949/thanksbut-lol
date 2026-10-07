@@ -26,7 +26,7 @@ export const SITE = {
     name: "Samuel Urah Yahaya",
     role: "Software developer & designer",
     location: "Nigeria",
-    url: "https://samy01.netlify.app",
+    url: "https://samuelyahaya.com",
     x: "https://x.com/I_am_SamY01",
     xHandle: "@I_am_SamY01",
     github: "https://github.com/Sammy949",
