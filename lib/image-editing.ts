@@ -90,6 +90,7 @@ export function applyRedactions(
   canvas.height = H;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas unsupported");
+  const supportsFilters = "filter" in ctx;
   ctx.drawImage(source, 0, 0);
 
   // Pristine copy to sample from for blur (so stacked rects don't double-blur).
@@ -100,11 +101,17 @@ export function applyRedactions(
 
   const blurRadius = Math.max(6, Math.round(Math.min(W, H) * 0.02));
 
-  for (const r of redactions) {
-    const x = Math.round(r.x * W);
-    const y = Math.round(r.y * H);
-    const w = Math.round(r.w * W);
-    const h = Math.round(r.h * H);
+  // Black boxes must remain opaque even where a later blur overlaps them.
+  const ordered = [
+    ...redactions.filter((r) => r.mode === "blur"),
+    ...redactions.filter((r) => r.mode === "black"),
+  ];
+  for (const r of ordered) {
+    // Round outwards so fractional coordinates cover every selected pixel.
+    const x = Math.floor(Math.max(0, r.x) * W);
+    const y = Math.floor(Math.max(0, r.y) * H);
+    const w = Math.ceil(Math.min(1, r.x + r.w) * W) - x;
+    const h = Math.ceil(Math.min(1, r.y + r.h) * H) - y;
     if (w <= 0 || h <= 0) continue;
 
     if (r.mode === "black") {
@@ -116,6 +123,14 @@ export function applyRedactions(
       ctx.rect(x, y, w, h);
       ctx.clip();
       ctx.filter = `blur(${blurRadius}px)`;
+      // Canvas filters are unavailable in some browsers. Never silently export
+      // the original sensitive pixels: use an opaque cover in that case.
+      if (!supportsFilters || ctx.filter !== `blur(${blurRadius}px)`) {
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(x, y, w, h);
+        ctx.restore();
+        continue;
+      }
       ctx.drawImage(pristine, 0, 0);
       ctx.restore();
     }

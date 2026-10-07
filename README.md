@@ -80,6 +80,13 @@ Other commands: `bun run lint`, `bun run typecheck`, `bun run typecheck:convex`,
 `bun run format:check`, and `bun run format`. Formatting writes across the project;
 prefer formatting only changed files during focused cleanup.
 
+For image-editor changes, run `node scripts/verify-redaction.mjs` after building.
+It uses Playwright and synthetic screenshots to check drawing, moving, resizing,
+touch input, preview/export alignment, and crop changes. Playwright must be
+available to Node, or selected through `PLAYWRIGHT_MODULE`; `CHROME_BIN` can
+select an installed Chromium. This optional browser check runs locally and saves
+its screenshots in a temporary directory, without contacting backend services.
+
 ## Code map
 
 | Location               | Responsibility                                                      |
