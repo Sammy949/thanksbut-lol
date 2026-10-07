@@ -23,6 +23,7 @@ export default function ManagePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
 
+  const [cleanup, setCleanup] = React.useState<string | null>(null);
   const [phase, setPhase] = React.useState<"idle" | "deleting" | "done">("idle");
 
   // The manage token lives in the URL fragment — client-only, never sent to the
@@ -48,10 +49,14 @@ export default function ManagePage() {
       });
       const data = (await res.json().catch(() => null)) as {
         deleted?: boolean;
+        screenshotCleanup?: string;
       } | null;
       if (res.ok && data?.deleted) {
+        setCleanup(data.screenshotCleanup ?? "pending");
         setPhase("done");
-        toast.success("Removed", { description: "Your artifact is gone from the wall." });
+        toast.success("Removed", {
+          description: "Your post is removed from the archive.",
+        });
       } else {
         setPhase("idle");
         toast.error("Couldn't remove that", {
@@ -82,8 +87,13 @@ export default function ManagePage() {
                 It&apos;s gone.
               </h1>
               <p className="text-on-surface-variant text-body-md mt-2 font-mono">
-                The artifact and its screenshot have been permanently deleted from the
-                archive.
+                Your post has been removed from the archive.{" "}
+                {cleanup === "confirmed"
+                  ? "Screenshot cleanup is confirmed."
+                  : cleanup === "pending"
+                    ? "Screenshot cleanup is pending and will be retried."
+                    : ""}{" "}
+                Copies saved or shared elsewhere may still exist.
               </p>
             </div>
             <Button asChild variant="secondary" shape="sheet" className="w-fit">
@@ -97,36 +107,36 @@ export default function ManagePage() {
           <div className="flex flex-col gap-6">
             <div>
               <h1 className="text-headline-md text-on-surface font-display">
-                Remove this artifact?
+                Remove this post?
               </h1>
               <p className="text-on-surface-variant text-body-md mt-2 font-mono">
-                This permanently deletes your post and its screenshot. It can&apos;t be
-                undone.
+                This removes your post from the archive and requests screenshot cleanup.
+                You can&apos;t undo post removal.
               </p>
             </div>
 
             {!token && (
               <p className="border-error/40 text-error border border-dashed p-3 font-mono text-xs">
-                No manage key found in this link. Use the full link you saved when you
-                submitted — it ends with <span className="font-bold">#…</span>
+                This private deletion link is incomplete. Use the full link you saved
+                after submitting, including <span className="font-bold">#…</span>
               </p>
             )}
 
             {/* What they're deleting */}
             {archive === undefined ? (
               <div className="text-secondary flex items-center gap-2 font-mono text-xs">
-                <Loader2 className="size-4 animate-spin" /> Loading artifact…
+                <Loader2 className="size-4 animate-spin" /> Loading post…
               </div>
             ) : archive === null ? (
               <p className="text-secondary font-mono text-xs">
-                This artifact isn&apos;t on the wall (already removed, or the link is
+                This post isn&apos;t on the wall (already removed, or the link is
                 wrong).
               </p>
             ) : (
               <div className="border-outline-variant bg-surface-container-low border p-4">
                 <div className="border-outline-variant mb-3 flex items-center justify-between gap-2 border-b border-dashed pb-2">
                   <span className="text-on-surface truncate font-mono text-sm font-bold">
-                    {archive.company ?? "Anonymous"}
+                    {archive.company ?? "Rejection"}
                   </span>
                   <Badge variant="square">{CATEGORY_LABELS[archive.category]}</Badge>
                 </div>
@@ -134,7 +144,7 @@ export default function ManagePage() {
                   // eslint-disable-next-line @next/next/no-img-element -- natural-ratio artifact
                   <img
                     src={archive.image.url}
-                    alt="Your artifact"
+                    alt="Your submission screenshot"
                     className="max-h-48 w-full object-contain"
                   />
                 ) : (
@@ -158,7 +168,7 @@ export default function ManagePage() {
                   </>
                 ) : (
                   <>
-                    <Trash2 className="size-4" /> Delete permanently
+                    <Trash2 className="size-4" /> Remove post
                   </>
                 )}
               </Button>

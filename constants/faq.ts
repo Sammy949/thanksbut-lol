@@ -17,37 +17,46 @@ export type FaqItem = {
 };
 
 /** The tweet that kicked the whole thing off — also linked on /about. */
-export const ORIGIN_TWEET_URL =
-  "https://x.com/I_am_SamY01/status/2070859292597510614";
+export const ORIGIN_TWEET_URL = "https://x.com/I_am_SamY01/status/2070859292597510614";
 
 export const FAQ_ITEMS: FaqItem[] = [
   {
     question: "What is thanksbut.lol?",
     answer:
-      "thanksbut.lol is the internet's public archive of rejection emails. It collects the \"we've decided to move in a different direction\" messages almost everyone receives — from jobs, internships, scholarships, hackathons, university admissions and more — and turns them into a shared, curated wall. It's intentionally light-hearted: a reminder that rejection is a universal experience, not a personal failing.",
+      "A public wall of rejection emails, from jobs, internships, scholarships, hackathons, universities, and beyond. Browse the rejections or archive one of your own.",
   },
   {
-    question: "Why was it created?",
+    question: "How do I submit a rejection?",
+    answer:
+      'Choose "Archive Yours", then add a screenshot or paste the rejection text. Choose a category and add an optional organisation, caption, or display name. Review your submission before publishing. No account is required.',
+  },
+  {
+    question: "When does my submission appear?",
+    answer:
+      "Immediately after publication succeeds. Submissions are not reviewed before appearing on the wall. You can open and share your rejection from the confirmation screen.",
+  },
+  {
+    question: "What should I remove before sharing?",
+    answer:
+      "Remove personal or sensitive details from screenshots, pasted text, and captions, including names, email addresses, phone numbers, application IDs, and private links. The screenshot editor lets you crop, blur, or cover details with black boxes. A display name is optional, but details inside your submission may still identify you or someone else. Everything you publish on the wall is public.",
+  },
+  {
+    question: "How do reports and moderation work?",
+    answer:
+      'Use "Report" on a rejection and choose a reason. Reported posts can be reviewed by the owner, who can dismiss reports, remove a post, or redact its screenshot. Report posts that expose personal details, contain harassment or hate speech, or are spam or misleading. A report does not automatically remove a post.',
+  },
+  {
+    question: "How do I remove my post?",
+    answer:
+      "Save the private deletion link shown after submitting. Anyone with this link can remove your post, so keep it private and use the separate public sharing link. We cannot recover a lost deletion link. Removing a post also requests screenshot cleanup; failed cleanup is retried. Copies saved or shared elsewhere may remain.",
+  },
+  {
+    question: "Who built it, and where did the idea come from?",
     answer: [
-      "The idea started after Robinson Honour posted ",
-      { text: "a tweet", href: ORIGIN_TWEET_URL },
-      " joking that someone should build a website where people could upload their rejection emails. Instead of letting it stay an idea, Samuel built it. The goal isn't to mock anyone who gets rejected — it's to celebrate persistence, growth, and the stories behind every attempt by making those moments public instead of hidden.",
+      "Samuel Urah Yahaya built thanksbut.lol after a ",
+      { text: "tweet", href: ORIGIN_TWEET_URL },
+      " about creating a website for rejection emails. The About page tells the build story.",
     ],
-  },
-  {
-    question: "Who built thanksbut.lol?",
-    answer:
-      "thanksbut.lol was designed and built by Samuel Urah Yahaya, a software developer and designer based in Nigeria who builds thoughtful internet projects in public. He designed the experience, built the frontend, wired up the backend with Convex and UploadThing, and deployed and launched it publicly in roughly twenty-four hours.",
-  },
-  {
-    question: "How are submissions moderated?",
-    answer:
-      "thanksbut.lol is community-driven but actively moderated. Before uploading, contributors are encouraged to remove or blur personal information such as names, email addresses, phone numbers and application IDs — the upload flow includes tools to crop and blur screenshots. Community members can report submissions that break the guidelines. Content may be removed if it exposes personal or sensitive information, contains harassment, hate speech or abuse, is spam or intentionally misleading, or infringes on someone's privacy. The goal is to keep the archive safe, respectful, and focused on resilience rather than embarrassing individuals or organisations.",
-  },
-  {
-    question: "How do I submit a rejection email?",
-    answer:
-      "Click \"Archive Yours\" anywhere on the site to open the submission flow. You can upload a screenshot of your rejection — using the built-in crop and blur tools to hide any personal details first — or paste the text, add a category and an optional caption, and post it to the wall. Submissions are anonymous by default.",
   },
 ];
 

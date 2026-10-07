@@ -1,5 +1,7 @@
 import { createUploadthing, type FileRouter } from "uploadthing/next";
 import { UploadThingError } from "uploadthing/server";
+import { fetchMutation } from "convex/nextjs";
+import { api } from "@/lib/convex-api";
 
 import { MAX_IMAGE_BYTES, ACCEPTED_IMAGE_TYPES } from "@/lib/validation";
 
@@ -17,6 +19,8 @@ export const ourFileRouter = {
     image: { maxFileSize: "8MB", maxFileCount: 1 },
   })
     .middleware(async ({ files }) => {
+      if (!process.env.CONVEX_REACTION_SECRET)
+        throw new UploadThingError("Uploads are temporarily unavailable.");
       const file = files[0];
       if (file && !(ACCEPTED_IMAGE_TYPES as readonly string[]).includes(file.type)) {
         throw new UploadThingError("Use a PNG, JPG, or WebP image.");
@@ -27,6 +31,10 @@ export const ourFileRouter = {
       return {};
     })
     .onUploadComplete(async ({ file }) => {
+      const secret = process.env.CONVEX_REACTION_SECRET;
+      if (!secret) throw new UploadThingError("Uploads are temporarily unavailable.");
+      // Unpublished uploads expire after 24 hours. Publication claims them atomically.
+      await fetchMutation(api.cleanupJobs.trackUpload, { key: file.key, secret });
       // Returned to the client as the upload result (UploadPayload-shaped).
       return {
         url: file.ufsUrl,

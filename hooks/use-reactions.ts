@@ -4,7 +4,8 @@ import * as React from "react";
 import { toast } from "sonner";
 
 import type { ArchiveResponse } from "@/types/archive";
-import { useSessionId } from "./use-session-id";
+import { useSessionId, retrySession } from "./use-session-id";
+import { requestJson } from "@/lib/request-json";
 
 type Overlay = Map<string, { reacted: boolean; reactions: number }>;
 
@@ -37,6 +38,8 @@ function matches(
 export function useReactions(archives: ArchiveResponse[]) {
   const sessionId = useSessionId();
   const [overlay, setOverlay] = React.useState<Overlay>(() => new Map());
+  const pendingRef = React.useRef(new Set<string>());
+  const [pending, setPending] = React.useState(new Set<string>());
 
   // Prune entries the live query has caught up to, during render (React's
   // supported "adjust state from changed inputs" pattern — re-runs render
@@ -49,7 +52,7 @@ export function useReactions(archives: ArchiveResponse[]) {
     let pruned: Overlay | null = null;
     for (const a of archives) {
       const o = overlay.get(a.id);
-      if (o && matches(o, a)) {
+      if (o && matches(o, a) && !pending.has(a.id)) {
         pruned ??= new Map(overlay);
         pruned.delete(a.id);
       }
@@ -60,22 +63,20 @@ export function useReactions(archives: ArchiveResponse[]) {
     }
   }
 
-  const merged = React.useMemo(
-    () =>
-      live.size === 0
-        ? archives
-        : archives.map((a) => {
-            const o = live.get(a.id);
-            return o ? { ...a, ...o } : a;
-          }),
-    [archives, live],
-  );
+  const merged = archives.map((a) => ({
+    ...a,
+    ...live.get(a.id),
+    reactionPending: pending.has(a.id),
+  }));
 
   const react = React.useCallback(
     (id: string) => {
+      if (pendingRef.current.has(id)) return;
+      if (!archives.some((a) => a.id === id)) return;
+      pendingRef.current.add(id);
+      setPending(new Set(pendingRef.current));
       if (!sessionId) {
-        toast("One sec — getting you ready to react.");
-        return;
+        toast("Preparing your reaction…");
       }
 
       // Optimistic flip from the currently displayed value.
@@ -89,18 +90,16 @@ export function useReactions(archives: ArchiveResponse[]) {
         return next;
       });
 
-      void fetch("/api/react", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "same-origin",
-        body: JSON.stringify({ archiveId: id }),
-      })
-        .then(async (res) => {
-          if (!res.ok) throw new Error(String(res.status));
-          const data = (await res.json()) as {
-            reacted: boolean;
-            reactions: number;
-          };
+      void retrySession()
+        .then(() =>
+          requestJson<{ reacted: boolean; reactions: number }>("/api/react", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ archiveId: id }),
+          }),
+        )
+        .then((data) => {
           // Pin to the authoritative result; pruned when the query catches up.
           setOverlay((prev) => {
             const next = new Map(prev);
@@ -108,7 +107,7 @@ export function useReactions(archives: ArchiveResponse[]) {
             return next;
           });
         })
-        .catch(() => {
+        .catch((error) => {
           // Revert: drop the optimistic entry and let the live value stand.
           setOverlay((prev) => {
             if (!prev.has(id)) return prev;
@@ -116,7 +115,13 @@ export function useReactions(archives: ArchiveResponse[]) {
             next.delete(id);
             return next;
           });
-          toast("Couldn't save that reaction. Try again?");
+          toast.error("Couldn't save your reaction", {
+            description: error instanceof Error ? error.message : "Try again.",
+          });
+        })
+        .finally(() => {
+          pendingRef.current.delete(id);
+          setPending(new Set(pendingRef.current));
         });
     },
     [sessionId, archives],

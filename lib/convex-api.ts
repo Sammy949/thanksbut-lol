@@ -67,18 +67,35 @@ export const api = {
     removeByToken: makeFunctionReference<
       "mutation",
       { id: string; manageToken: string; secret: string },
-      { deleted: boolean; imageKey: string | null }
+      { deleted: boolean; imageKey: string | null; cleanupId?: string | null }
     >("archives:removeByToken"),
     moderateRemove: makeFunctionReference<
       "mutation",
       { archiveId: string; secret: string },
-      { removed: boolean; imageKey: string | null }
+      { removed: boolean; imageKey: string | null; cleanupId?: string | null }
     >("archives:moderateRemove"),
     moderateReplaceImage: makeFunctionReference<
       "mutation",
       { archiveId: string; image: ArchiveImage; secret: string },
-      { replaced: boolean; oldImageKey: string | null }
+      { replaced: boolean; oldImageKey: string | null; cleanupId?: string | null }
     >("archives:moderateReplaceImage"),
+  },
+  cleanupJobs: {
+    trackUpload: makeFunctionReference<
+      "mutation",
+      { key: string; secret: string },
+      null
+    >("cleanupJobs:trackUpload"),
+    confirm: makeFunctionReference<
+      "mutation",
+      { id: string; secret: string; admin: boolean },
+      null
+    >("cleanupJobs:confirm"),
+    pendingCount: makeFunctionReference<
+      "query",
+      { secret: string },
+      { count: number; more: boolean }
+    >("cleanupJobs:pendingCount"),
   },
   reactions: {
     toggle: makeFunctionReference<

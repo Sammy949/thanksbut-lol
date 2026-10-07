@@ -20,6 +20,7 @@ interface ImageEditorProps {
   file: File;
   onCancel: () => void;
   onComplete: (processed: File) => void;
+  completeLabel?: string;
 }
 
 const ASPECTS: { label: string; value: number }[] = [
@@ -34,7 +35,12 @@ const ASPECTS: { label: string; value: number }[] = [
  * browser. Deliberately two quick stages (crop → redact) for reliable touch +
  * pointer behaviour.
  */
-export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
+export function ImageEditor({
+  file,
+  onCancel,
+  onComplete,
+  completeLabel = "Use screenshot",
+}: ImageEditorProps) {
   // Create + revoke the object URL in one effect so its lifecycle matches the
   // effect's. (Creating it in useMemo and revoking in a separate effect breaks
   // under React StrictMode: the dev double-invoke revokes the still-in-use URL,
@@ -62,12 +68,14 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
   );
   const [redactions, setRedactions] = React.useState<Redaction[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
+  const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
 
   const selected = redactions.find((r) => r.id === selectedId) ?? null;
 
   const goToRedact = async () => {
     if (!areaPixels || !url) return;
+    setError(null);
     setBusy(true);
     try {
       const canvas = await getCroppedCanvas(url, areaPixels, rotation);
@@ -76,6 +84,8 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
       setRedactions([]);
       setSelectedId(null);
       setStage("redact");
+    } catch {
+      setError("Couldn’t process this screenshot. Try again, or choose another image.");
     } finally {
       setBusy(false);
     }
@@ -88,11 +98,14 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
 
   const finish = async () => {
     if (!croppedCanvas) return;
+    setError(null);
     setBusy(true);
     try {
       const baked = applyRedactions(croppedCanvas, redactions);
       const processed = await canvasToCompressedFile(baked, file.name);
       onComplete(processed);
+    } catch {
+      setError("Couldn’t process this screenshot. Try again, or choose another image.");
     } finally {
       setBusy(false);
     }
@@ -139,6 +152,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
           <button
             type="button"
             onClick={onCancel}
+            disabled={busy}
             aria-label="Cancel editing"
             className="text-on-surface-variant hover:text-on-surface"
           >
@@ -146,6 +160,11 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
           </button>
         </div>
 
+        {error && (
+          <p role="alert" className="text-error font-mono text-sm">
+            {error}
+          </p>
+        )}
         {stage === "crop" ? (
           <>
             <div className="flex flex-col gap-2">
@@ -163,7 +182,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
             </div>
 
             <div className="flex flex-col gap-2">
-              <Label>Aspect</Label>
+              <Label>Crop ratio</Label>
               <div className="flex flex-wrap gap-2">
                 {ASPECTS.map((a) => (
                   <button
@@ -202,7 +221,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
                 onClick={goToRedact}
               >
                 {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-                Continue
+                Continue to hide details
               </Button>
             </div>
           </>
@@ -210,7 +229,8 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
           <>
             <p className="text-code-snippet text-on-surface-variant font-mono">
               Drag on the screenshot to cover names, emails, phone numbers, or IDs.
-              Select a box to switch it between blur and black, or delete it.
+              Select a box to change it or delete it. Use a black box for details that
+              must be fully covered. Changing the crop clears these boxes.
             </p>
 
             <div className="flex flex-col gap-2">
@@ -240,7 +260,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
                       : "border-outline-variant text-on-surface-variant",
                   )}
                 >
-                  Black
+                  Black box
                 </button>
                 <button
                   type="button"
@@ -273,7 +293,7 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
             <div className="mt-auto flex flex-col gap-2 pt-2">
               <Button shape="sheet" className="w-full" disabled={busy} onClick={finish}>
                 {busy ? <Loader2 className="size-4 animate-spin" /> : null}
-                Continue
+                {completeLabel}
               </Button>
               <Button
                 variant="ghost"

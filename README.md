@@ -32,7 +32,7 @@ bun dev
 
 Open `http://localhost:3000`. Without `NEXT_PUBLIC_CONVEX_URL`, the homepage shows
 sample archives. This is a browsing preview; submissions and backend actions
-require the services below. The sample wall's reactions are local UI state.
+require the services below. Sample mode clearly labels its examples and disables backend actions.
 
 ### Enable the backend
 
@@ -47,7 +47,8 @@ files are tracked so a fresh checkout can typecheck without deployment access.
 The frontend currently uses explicit typed references in `lib/convex-api.ts`;
 keep their argument and return types aligned with the backend functions.
 
-Configure `UPLOADTHING_TOKEN` to enable image uploads. Set the session and admin
+Configure `UPLOADTHING_TOKEN` in Next and Convex to enable uploads and durable
+screenshot cleanup. Both must refer to the same UploadThing project. Set the session and admin
 variables documented in `.env.example`. The shared Convex secrets must have
 matching values in both the Next environment and the Convex deployment.
 
@@ -62,7 +63,7 @@ Keep credentials in environment files or service settings. Never commit them.
 ## Verification and working conventions
 
 ```bash
-bun run check       # lint + frontend/Convex typechecks + session regression tests
+bun run check       # lint + frontend/Convex typechecks + regression tests
 bun run build       # production compilation and prerendering
 ```
 
@@ -105,9 +106,30 @@ its screenshots in a temporary directory, without contacting backend services.
 - Signed cookies prevent session forgery; they do not prevent visitors obtaining
   fresh sessions. IP rate limits are best effort and reset per server instance.
 - Archive creation validates image metadata but does not verify upload ownership.
-- Deleting or replacing images attempts CDN file cleanup. Failures are currently
-  swallowed, with no durable retry queue, so database removal does not guarantee
-  immediate file removal.
+- Deleting or replacing images records cleanup work transactionally. Next attempts
+  cleanup immediately; failed cleanup is retried by Convex every five minutes with
+  backoff up to a day. Owner moderation displays pending cleanup counts. Removal
+  from the archive does not guarantee removal of copies saved or shared elsewhere.
+- Completed uploads not attached to a post expire after 24 hours. Publication claims
+  the upload transactionally; uploads whose cleanup has begun cannot be published.
+  Expired upload records are retained to prevent late attachment of deleted files.
 - Submissions appear immediately and are moderated after reports.
 - The archive total and moderation queue collect matching rows, suitable for a
   small archive; revisit them as volume grows.
+
+## Trust and flow checks
+
+Functional UI uses “rejection” for archive content, “submission” in forms, and
+“post” for removal/moderation. Contributor text and the paper/stamp identity stay
+intact. Images upload only on Archive Yours, and success requires confirmed
+publication. Private deletion links are separate from public sharing links.
+
+Before deploying these changes, set `UPLOADTHING_TOKEN` on the Convex deployment
+and deploy the backend before the frontend. The upload callback requires the
+new cleanup tracking mutation. Existing uploads are not retroactively registered;
+removal/replacement creates cleanup jobs for them when requested.
+
+`node scripts/verify-flows.mjs` (same Playwright/Chromium options as the redaction
+check) exercises actual components with synthetic entries and stubbed services.
+It checks validation, submission states, clipboard fallback, reporting, reactions,
+moderation, deletion, browsing, and mobile scrolling without live service writes.

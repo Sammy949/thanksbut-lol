@@ -47,7 +47,7 @@ export function ReportDetailDialog({
         {item && (
           <div className="flex max-h-[85vh] flex-col gap-5 overflow-y-auto">
             <div className="border-outline-variant flex items-end justify-between gap-3 border-b border-dashed pr-8 pb-3">
-              <DialogTitle>{a?.company ?? "Anonymous"}</DialogTitle>
+              <DialogTitle>{a?.company ?? "Rejection"}</DialogTitle>
               <div className="flex items-center gap-2">
                 {a && <Badge variant="square">{CATEGORY_LABELS[a.category]}</Badge>}
                 {a?.status === "removed" && (
@@ -65,7 +65,7 @@ export function ReportDetailDialog({
                     artifact of unknown dimensions; next/image needs fixed w/h or fill. */}
                 <img
                   src={a.image.url}
-                  alt={`Reported artifact from ${a.company ?? "an organisation"}`}
+                  alt={`Reported post from ${a.company ?? "an organisation"}`}
                   className="max-h-[60vh] w-auto max-w-full object-contain"
                 />
               </div>
@@ -75,7 +75,7 @@ export function ReportDetailDialog({
               </p>
             ) : (
               <p className="text-secondary font-mono text-sm">
-                This artifact is no longer available (removed or deleted).
+                This post is no longer available (removed or deleted).
               </p>
             )}
 
@@ -129,7 +129,9 @@ export function ReportDetailDialog({
                   onClick={onRedact}
                 >
                   {busy === "redact" ? (
-                    <Loader2 className="size-4 animate-spin" />
+                    <>
+                      <Loader2 className="size-4 animate-spin" /> Saving…
+                    </>
                   ) : (
                     <>
                       <ScanLine className="size-4" /> Redact image
@@ -145,10 +147,12 @@ export function ReportDetailDialog({
                 onClick={onDismiss}
               >
                 {busy === "dismiss" ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <>
+                    <Loader2 className="size-4 animate-spin" /> Dismissing…
+                  </>
                 ) : (
                   <>
-                    <Check className="size-4" /> Dismiss
+                    <Check className="size-4" /> Dismiss reports
                   </>
                 )}
               </Button>
@@ -160,7 +164,9 @@ export function ReportDetailDialog({
                 onClick={onRemove}
               >
                 {busy === "remove" ? (
-                  <Loader2 className="size-4 animate-spin" />
+                  <>
+                    <Loader2 className="size-4 animate-spin" /> Removing…
+                  </>
                 ) : (
                   <>
                     <Trash2 className="size-4" /> Remove

@@ -18,7 +18,7 @@ import { fetchMutation } from "convex/nextjs";
 
 import { api } from "@/lib/convex-api";
 import { clientIp, rateLimitOk } from "@/lib/rate-limit";
-import { deleteUploadedFiles } from "@/lib/uploadthing-admin";
+import { completeFileCleanup } from "@/lib/cleanup-response";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -64,15 +64,14 @@ export async function POST(req: Request) {
       secret,
     });
 
-    // Row is gone; clean up the stored file too (best-effort, never blocks).
-    if (result.deleted && result.imageKey) {
-      await deleteUploadedFiles(result.imageKey);
-    }
+    const screenshotCleanup = result.deleted
+      ? await completeFileCleanup(result.imageKey, result.cleanupId, secret, false)
+      : "not-needed";
 
     // Same response whether the token was wrong or the archive was already gone
     // — don't confirm existence of an archive to someone without the token.
     return NextResponse.json(
-      { deleted: result.deleted },
+      { deleted: result.deleted, screenshotCleanup },
       { headers: { "Cache-Control": "no-store" } },
     );
   } catch {

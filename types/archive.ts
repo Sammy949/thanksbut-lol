@@ -42,6 +42,8 @@ export interface Archive {
   reactions: number;
   /** Whether the current visitor has reacted (live data only; mock omits it). */
   reacted?: boolean;
+  /** Display-only state while a reaction write is pending. */
+  reactionPending?: boolean;
   /** Creation timestamp, epoch milliseconds. */
   createdAt: number;
   /** Optional decorative stamp (REJECTED / GHOSTED). */

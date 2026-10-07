@@ -8,6 +8,7 @@ import { categoryValidator, imageValidator } from "./schema";
 import { serializeArchive } from "./lib/serialize";
 import { resolveIdentity, assertServerSecret, assertAdminSecret } from "./lib/identity";
 import { archiveInputSchema, type ArchiveInputValues } from "../lib/validation";
+import { enqueueCleanup, claimUpload } from "./cleanupJobs";
 
 /**
  * Has this caller reacted to the given archive? Keyed on the server-issued
@@ -121,6 +122,7 @@ export const create = mutation({
       throw err;
     }
     const manageToken = crypto.randomUUID();
+    if (input.image) await claimUpload(ctx, input.image.key);
 
     const id = await ctx.db.insert("archives", {
       ...input,
@@ -175,9 +177,10 @@ export const removeByToken = mutation({
     for (const row of reportRows) await ctx.db.delete(row._id);
 
     const imageKey = doc.image?.key ?? null;
+    const cleanupId = imageKey ? await enqueueCleanup(ctx, imageKey) : null;
     await ctx.db.delete(archiveId);
 
-    return { deleted: true as const, imageKey };
+    return { deleted: true as const, imageKey, cleanupId };
   },
 });
 
@@ -210,7 +213,9 @@ export const moderateRemove = mutation({
       if (r.status === "open") await ctx.db.patch(r._id, { status: "resolved" });
     }
 
-    return { removed: true as const, imageKey: doc.image?.key ?? null };
+    const imageKey = doc.image?.key ?? null;
+    const cleanupId = imageKey ? await enqueueCleanup(ctx, imageKey) : null;
+    return { removed: true as const, imageKey, cleanupId };
   },
 });
 
@@ -238,8 +243,19 @@ export const moderateReplaceImage = mutation({
     if (!doc) return { replaced: false as const, oldImageKey: null };
 
     const oldImageKey = doc.image?.key ?? null;
+    if (doc.status === "removed")
+      return { replaced: false as const, oldImageKey: null };
+    await claimUpload(ctx, image.key);
+    const cleanupId =
+      oldImageKey && oldImageKey !== image.key
+        ? await enqueueCleanup(ctx, oldImageKey)
+        : null;
     await ctx.db.patch(archiveId, { image });
 
-    return { replaced: true as const, oldImageKey };
+    return {
+      replaced: true as const,
+      oldImageKey: oldImageKey === image.key ? null : oldImageKey,
+      cleanupId,
+    };
   },
 });

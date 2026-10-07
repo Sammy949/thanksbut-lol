@@ -57,13 +57,17 @@ export function ArchiveCard({
       {decoration === "clip" && <PaperClip className="top-[-12px] left-6 z-10" />}
 
       {stamp && (
-        <StampMark label={stamp} style={stampStyle} className="absolute z-20 text-[22px]" />
+        <StampMark
+          label={stamp}
+          style={stampStyle}
+          className="absolute z-20 text-[22px]"
+        />
       )}
 
       {/* Letterhead */}
       <div className="border-outline-variant mb-3 flex items-end justify-between gap-2 border-b border-dashed pb-2">
         <span className="text-on-surface min-w-0 truncate font-mono text-sm font-bold">
-          {archive.company ?? "Anonymous"}
+          {archive.company ?? "Rejection"}
         </span>
         <Badge variant="square" className="shrink-0">
           {CATEGORY_LABELS[archive.category]}
@@ -74,7 +78,7 @@ export function ArchiveCard({
       <button
         type="button"
         onClick={() => onOpen(archive)}
-        aria-label="Inspect artifact"
+        aria-label="Open rejection"
         className="block w-full text-left"
       >
         {archive.image ? (
@@ -124,7 +128,7 @@ export function ArchiveCard({
               <button
                 type="button"
                 onClick={() => onReport(archive)}
-                aria-label="Report artifact"
+                aria-label="Report rejection"
                 className="text-secondary hover:text-primary flex size-7 items-center justify-center transition-colors"
               >
                 <Flag className="size-3.5" />
@@ -134,6 +138,7 @@ export function ArchiveCard({
           </Tooltip>
           <ReactionButton
             count={archive.reactions}
+            pending={archive.reactionPending}
             reacted={archive.reacted}
             onToggle={onReact ? () => onReact(archive.id) : undefined}
           />

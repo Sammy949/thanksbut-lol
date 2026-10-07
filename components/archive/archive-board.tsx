@@ -1,5 +1,7 @@
 "use client";
 
+import { Suspense } from "react";
+import { ArchiveLoading } from "./archive-loading";
 import { useQuery } from "convex/react";
 
 import { api } from "@/lib/convex-api";
@@ -20,8 +22,10 @@ function LiveBoard() {
   const stats = useQuery(api.archives.stats);
   return (
     <>
-      <Hero count={stats?.total ?? 0} />
-      <LiveArchiveFeed />
+      <Hero count={stats?.total} />
+      <Suspense fallback={<ArchiveLoading />}>
+        <LiveArchiveFeed />
+      </Suspense>
     </>
   );
 }
@@ -29,8 +33,12 @@ function LiveBoard() {
 function MockBoard() {
   return (
     <>
-      <Hero count={MOCK_ARCHIVES.length} />
-      <ArchiveFeed archives={MOCK_ARCHIVES} />
+      <Hero sample />
+      <p className="text-secondary mx-auto px-5 text-center font-mono text-sm">
+        Sample wall. These are example rejections; submissions, reactions, and reports
+        are unavailable.
+      </p>
+      <ArchiveFeed archives={MOCK_ARCHIVES} previewMode />
     </>
   );
 }

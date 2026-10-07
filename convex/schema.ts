@@ -40,6 +40,16 @@ export const imageValidator = v.object({
 });
 
 export default defineSchema({
+  fileCleanup: defineTable({
+    key: v.string(),
+    attempts: v.number(),
+    nextAttemptAt: v.number(),
+    purpose: v.union(v.literal("unpublished"), v.literal("removed")),
+    cleanupStarted: v.optional(v.boolean()),
+    expired: v.optional(v.boolean()),
+  })
+    .index("by_key", ["key"])
+    .index("by_attempt", ["nextAttemptAt"]),
   archives: defineTable({
     category: categoryValidator,
     image: v.optional(imageValidator),
@@ -57,6 +67,7 @@ export default defineSchema({
   })
     // Newest-first wall: eq(status) then order desc by _creationTime.
     .index("by_status", ["status"])
+    .index("by_image_key", ["image.key"])
     // Category filter: eq(status, category) then order desc by _creationTime.
     .index("by_category", ["status", "category"]),
 

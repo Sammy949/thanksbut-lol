@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { toast } from "sonner";
 import dynamic from "next/dynamic";
 
 import { SubmissionContext } from "./submission-context";
@@ -15,21 +16,15 @@ import { SubmissionContext } from "./submission-context";
  */
 const importDrawer = () => import("./submission-drawer");
 
-const SubmissionDrawer = dynamic(
-  () => importDrawer().then((m) => m.SubmissionDrawer),
-  {
-    ssr: false,
-    // Rare path: user clicks before the chunk has warmed. Show the drawer's own
-    // dimmed backdrop immediately so the click never feels dead, then the real
-    // panel fades in over it — no visible swap.
-    loading: () => (
-      <div
-        className="bg-on-surface/40 fixed inset-0 z-50 backdrop-blur-sm"
-        aria-hidden
-      />
-    ),
-  },
-);
+const SubmissionDrawer = dynamic(() => importDrawer().then((m) => m.SubmissionDrawer), {
+  ssr: false,
+  // Rare path: user clicks before the chunk has warmed. Show the drawer's own
+  // dimmed backdrop immediately so the click never feels dead, then the real
+  // panel fades in over it — no visible swap.
+  loading: () => (
+    <div className="bg-on-surface/40 fixed inset-0 z-50 backdrop-blur-sm" aria-hidden />
+  ),
+});
 
 /**
  * Owns the single submission drawer and exposes `openDrawer()` to the tree via
@@ -43,6 +38,12 @@ export function SubmissionProvider({ children }: { children: React.ReactNode }) 
   const value = React.useMemo(
     () => ({
       openDrawer: () => {
+        if (!process.env.NEXT_PUBLIC_CONVEX_URL) {
+          toast("This is a sample wall", {
+            description: "Submissions are unavailable in preview mode.",
+          });
+          return;
+        }
         setMounted(true);
         setOpen(true);
       },
