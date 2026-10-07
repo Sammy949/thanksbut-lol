@@ -62,7 +62,7 @@ Keep credentials in environment files or service settings. Never commit them.
 ## Verification and working conventions
 
 ```bash
-bun run check       # lint + frontend and Convex typechecks
+bun run check       # lint + frontend/Convex typechecks + session regression tests
 bun run build       # production compilation and prerendering
 ```
 
@@ -76,7 +76,7 @@ Work on a focused branch, use commits that describe one coherent change, and
 review the diff before opening a pull request. Keep Bun's lockfile current when
 changing dependencies. Regenerate and commit Convex types when changing its API.
 
-Other commands: `bun run lint`, `bun run typecheck`, `bun run typecheck:convex`,
+Other commands: `bun run lint`, `bun run typecheck`, `bun run typecheck:convex`, `bun run test`,
 `bun run format:check`, and `bun run format`. Formatting writes across the project;
 prefer formatting only changed files during focused cleanup.
 

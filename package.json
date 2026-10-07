@@ -10,7 +10,8 @@
     "lint": "eslint --max-warnings 0",
     "typecheck": "tsc --noEmit",
     "typecheck:convex": "tsc --noEmit -p convex/tsconfig.json",
-    "check": "bun run lint && bun run typecheck && bun run typecheck:convex",
+    "test": "bun test tests",
+    "check": "bun run lint && bun run typecheck && bun run typecheck:convex && bun run test",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
   },

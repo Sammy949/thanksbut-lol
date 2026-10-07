@@ -53,8 +53,12 @@ export function verifySession(cookieValue: string | undefined): string | null {
   const provided = cookieValue.slice(dot + 1);
   const expected = sign(sessionId);
 
-  // Length-guard before timingSafeEqual (it throws on length mismatch).
+  // Guard both character and byte lengths: malformed UTF-8 signatures can have
+  // the expected character count but produce a longer buffer.
   if (provided.length !== expected.length) return null;
-  const ok = timingSafeEqual(Buffer.from(provided), Buffer.from(expected));
+  const providedBytes = Buffer.from(provided);
+  const expectedBytes = Buffer.from(expected);
+  if (providedBytes.length !== expectedBytes.length) return null;
+  const ok = timingSafeEqual(providedBytes, expectedBytes);
   return ok ? sessionId : null;
 }
