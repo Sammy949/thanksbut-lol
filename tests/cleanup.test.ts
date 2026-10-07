@@ -119,6 +119,15 @@ test("publication claims an upload; expired uploads cannot race cleanup into a n
   await t.mutation(api.archives.create, { category: "job", image });
   assert.equal((await t.run((ctx) => ctx.db.query("fileCleanup").collect())).length, 0);
   await t.mutation(api.cleanupJobs.trackUpload, {
+    key: image.key,
+    secret: serverSecret,
+  });
+  assert.equal(
+    (await t.run((ctx) => ctx.db.query("fileCleanup").collect())).length,
+    0,
+    "A retried callback must not expire a published screenshot",
+  );
+  await t.mutation(api.cleanupJobs.trackUpload, {
     key: "expired",
     secret: serverSecret,
   });

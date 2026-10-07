@@ -42,6 +42,14 @@ export const trackUpload = mutation({
       .query("fileCleanup")
       .withIndex("by_key", (q) => q.eq("key", key))
       .unique();
+    // A retried upload callback may arrive after publication claimed the job.
+    // Never put an attached screenshot back on the unpublished expiry queue.
+    const attached = await ctx.db
+      .query("archives")
+      .withIndex("by_image_key", (q) => q.eq("image.key", key))
+      .filter((q) => q.eq(q.field("status"), "visible"))
+      .first();
+    if (attached) return;
     if (!existing)
       await ctx.db.insert("fileCleanup", {
         key,

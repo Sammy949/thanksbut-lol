@@ -67,6 +67,7 @@ export default defineSchema({
   })
     // Newest-first wall: eq(status) then order desc by _creationTime.
     .index("by_status", ["status"])
+    .index("by_image_key", ["image.key"])
     // Category filter: eq(status, category) then order desc by _creationTime.
     .index("by_category", ["status", "category"]),
 
