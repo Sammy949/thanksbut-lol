@@ -1,17 +1,11 @@
 /**
  * Server-only anonymous session identity.
  *
- * The reaction count is only as trustworthy as the identity it's keyed on. The
- * old `visitorId` was a localStorage UUID the *client* generated and sent, so an
- * attacker could mint a fresh "identity" per request and inflate the count
- * without limit (this is exactly how one archive went 2 → 676).
- *
- * The fix: the server issues the identity. On first contact we mint a random
- * `sessionId` and hand back an HMAC-signed, httpOnly cookie. Because the
- * signature requires `REACTION_SESSION_SECRET` (server-only), the client cannot
- * forge a *new* valid session — it can only replay its own, which the
- * one-reaction-per-identity index already de-dupes. The reaction write
- * (`/api/react`) trusts ONLY the sessionId recovered from this signed cookie.
+ * The server issues a random `sessionId` in an HMAC-signed, httpOnly cookie.
+ * Reaction/report routes recover identity only from the verified cookie;
+ * browser-supplied ids cannot authorize writes. Deduplication applies per
+ * session, not per person: callers can obtain new cookies by omitting the old
+ * one. Signing prevents forgery, not multiple-session abuse.
  *
  * This module uses `node:crypto` and must never be imported into client code.
  */

@@ -63,9 +63,8 @@ export default defineSchema({
   reactions: defineTable({
     archiveId: v.id("archives"),
     /**
-     * Resolved caller identity (see convex/lib/identity). Today "visitor:<uuid>"
-     * from localStorage; becomes "user:<id>" once accounts exist — no schema
-     * change needed.
+     * Resolved caller identity (see convex/lib/identity): "session:<uuid>"
+     * from a server-issued cookie, or "user:<id>" for an authenticated caller.
      */
     identity: v.string(),
   })

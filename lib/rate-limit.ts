@@ -1,9 +1,9 @@
 /**
  * Best-effort per-IP sliding-window rate limit.
  *
- * SECONDARY defence only. The primary anti-abuse control is the server-issued
- * signed session (see lib/session.ts) — the count cannot be inflated by minting
- * identities. This just blunts rapid-fire floods from a single IP.
+ * This blunts rapid-fire floods from a single IP. Signed sessions prevent
+ * cookie forgery, but callers can still obtain fresh sessions; neither control
+ * guarantees one identity per person.
  *
  * Deliberately in-memory: state is per serverless instance and resets on cold
  * start, so it is NOT a hard guarantee. We keep the window generous so genuine

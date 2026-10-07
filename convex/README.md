@@ -1,38 +1,50 @@
-# convex/
+# Backend
 
-The thanksbut.lol backend. Schema + functions are written; they just need a
-deployment to come alive.
+Convex stores archives, reactions, and reports. The Next app subscribes to public
+reads directly and uses server API routes for reactions, reports, deletion, and
+owner moderation. Archive creation is an anonymous public mutation.
 
-## One-time setup
-
-```bash
-npx convex dev
-```
-
-This authenticates, provisions a dev deployment, writes `convex/_generated/`
-(the typed client), and adds `NEXT_PUBLIC_CONVEX_URL` + `CONVEX_DEPLOYMENT` to
-`.env.local`. The `Providers` component wires `ConvexProvider` automatically
-once the URL is set. Then seed sample data:
+## Development
 
 ```bash
-npx convex run seed:run
+bunx convex dev
+bun run typecheck:convex
 ```
 
-## Layout
+Use a development deployment. `convex dev` syncs functions and regenerates the
+tracked files in `_generated/`; include changed generated files with API changes.
+Do not hand-edit them. See the root README and `.env.example` for configuration.
 
-- `schema.ts` — `archives`, `reactions`, `reports` tables + indexes
-  (`by_status`, `by_category` for newest-first/filtered feeds).
-- `archives.ts` — `list` (paginated + category), `getById`, `stats`, `create`.
-- `reactions.ts` — `toggle` (one 🥲 per identity).
-- `reports.ts` — `create` (spam / pii / harassment / other).
-- `seed.ts` — sample archives (`seed:run`).
-- `lib/` — `serialize` (Doc → API shape) and `identity` (anonymous visitor now,
-  account-ready later).
+To populate an empty development archive, run `bunx convex run seed:run`. It is
+an internal mutation and does nothing if any archive already exists.
 
-## Frontend coupling
+## Functions and tables
 
-The frontend references these functions by name via
-[`lib/convex-api.ts`](../lib/convex-api.ts) (typed `makeFunctionReference`),
-**not** `_generated/api` — so the app typechecks and builds before a deployment
-exists. Data hooks live in [`hooks/`](../hooks). Shared validation is in
-[`lib/validation.ts`](../lib/validation.ts) (used by both sides).
+- `schema.ts`: archives, reactions, and reports with feed/deduplication indexes.
+- `archives.ts`: public paginated feed, lookup, totals, creation, token-authorized
+  hard deletion, and owner-only removal/image replacement.
+- `reactions.ts`: trusted reaction toggle plus internal reconciliation/purge tools.
+- `reports.ts`: trusted report creation and owner-only listing/dismissal.
+- `lib/identity.ts`: anonymous session identity and shared-secret guards.
+- `lib/serialize.ts`: public archive fields; management tokens are never returned.
+
+## Trust boundaries
+
+Next signs anonymous cookies with `REACTION_SESSION_SECRET`. Its reaction/report
+routes recover the session from the cookie and pass `CONVEX_REACTION_SECRET` to
+Convex. Token-authorized deletion uses the same server secret plus the archive's
+private management token. Signed sessions prevent forged cookies, not creation
+of multiple fresh sessions.
+
+Owner routes first verify the admin cookie signed with `ADMIN_SESSION_SECRET`,
+then use the separate `CONVEX_ADMIN_SECRET`. The owner password is configured in
+the Next environment as `ADMIN_PASSWORD`.
+
+Public archive creation uses the shared Zod schema in `lib/validation.ts`. Image
+metadata is client supplied; upload ownership is not currently verified.
+
+Self-service deletion hard-deletes an archive and its reaction/report rows.
+Moderation removal hides the archive and resolves reports while retaining the
+archive row. Both return the image key for Next to attempt UploadThing cleanup;
+file cleanup is best effort. Image replacement returns the original key for the
+same cleanup path.

@@ -36,10 +36,9 @@ export interface OpenReportItem {
 /**
  * Typed references to the Convex functions, by name.
  *
- * We intentionally avoid importing `convex/_generated/api` so the frontend
- * typechecks and builds WITHOUT a provisioned Convex deployment. Running
- * `npx convex dev` deploys the matching functions; these string names
- * ("module:export") resolve at runtime. The generics keep call sites fully typed.
+ * Explicit references use "module:export" names resolved at runtime. Their
+ * generics type the call sites but must be kept aligned with the backend.
+ * The generated API/types are tracked for reproducible backend typechecks.
  */
 export const api = {
   archives: {

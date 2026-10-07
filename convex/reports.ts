@@ -3,11 +3,7 @@ import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import type { Id } from "./_generated/dataModel";
 import { reportReasonValidator } from "./schema";
-import {
-  resolveIdentity,
-  assertServerSecret,
-  assertAdminSecret,
-} from "./lib/identity";
+import { resolveIdentity, assertServerSecret, assertAdminSecret } from "./lib/identity";
 
 /**
  * File a report against an archive.
@@ -15,12 +11,12 @@ import {
  * TRUST MODEL mirrors reactions (see convex/reactions.ts): this runs
  * server-to-server from the Next `/api/report` route. `sessionId` is recovered
  * there from the HMAC-signed httpOnly cookie; `secret` proves the call came from
- * our server, not a forged browser request. Together they make the reporter
- * identity un-forgeable, which is what lets us dedupe.
+ * our server, not a forged browser request. Deduplication is per signed session;
+ * callers can still obtain multiple sessions.
  *
  * Post-moderation: the archive stays visible until an admin acts on the report.
  * At most one OPEN report per identity per archive — re-reporting is a no-op so
- * a single visitor can't flood the moderation queue.
+ * one session can't stack duplicate open reports on the same archive.
  */
 export const create = mutation({
   args: {
@@ -107,9 +103,7 @@ export const listOpen = query({
             ? {
                 id: doc._id as string,
                 category: doc.category,
-                image: doc.image
-                  ? { url: doc.image.url, key: doc.image.key }
-                  : null,
+                image: doc.image ? { url: doc.image.url, key: doc.image.key } : null,
                 text: doc.text ?? null,
                 company: doc.company ?? null,
                 caption: doc.caption ?? null,

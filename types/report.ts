@@ -5,7 +5,9 @@ export interface Report {
   id: string;
   archiveId: string;
   reason: ReportReason;
-  /** Anonymous reporter identity (localStorage UUID), if available. */
+  /** Server-issued reporter identity; absent on legacy reports. */
+  identity?: string;
+  /** Legacy client-issued identity retained for older reports. */
   visitorId?: string;
   status: "open" | "resolved";
   createdAt: number;

@@ -3,8 +3,8 @@
  *
  * Trust chain:
  *  1. Recover the sessionId from the HMAC-signed httpOnly cookie. No valid
- *     cookie → 401. The client cannot forge a *new* session without the secret,
- *     so it can't mint fresh identities to inflate the count (the 2 → 676 bug).
+ *     cookie → 401. Signatures prevent forgery, but callers can still request
+ *     fresh sessions. Deduplication is per session, not per person.
  *  2. Soft per-IP rate limit — secondary flood protection, CGNAT-safe.
  *  3. Call the trusted Convex mutation with the shared server secret.
  *
@@ -34,10 +34,7 @@ export async function POST(req: Request) {
 
   const now = Date.now();
   if (!rateLimitOk(`react:${clientIp(req)}`, now)) {
-    return NextResponse.json(
-      { error: "Slow down a moment." },
-      { status: 429 },
-    );
+    return NextResponse.json({ error: "Slow down a moment." }, { status: 429 });
   }
 
   let archiveId: unknown;
