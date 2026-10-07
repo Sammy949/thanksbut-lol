@@ -57,8 +57,9 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
   const [aspect, setAspect] = React.useState(4 / 3);
   const [areaPixels, setAreaPixels] = React.useState<Area | null>(null);
 
-  const croppedCanvas = React.useRef<HTMLCanvasElement | null>(null);
-  const [croppedUrl, setCroppedUrl] = React.useState<string | null>(null);
+  const [croppedCanvas, setCroppedCanvas] = React.useState<HTMLCanvasElement | null>(
+    null,
+  );
   const [redactions, setRedactions] = React.useState<Redaction[]>([]);
   const [selectedId, setSelectedId] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -70,8 +71,10 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
     setBusy(true);
     try {
       const canvas = await getCroppedCanvas(url, areaPixels, rotation);
-      croppedCanvas.current = canvas;
-      setCroppedUrl(canvas.toDataURL("image/jpeg", 0.92));
+      setCroppedCanvas(canvas);
+      // A new crop defines a new coordinate space; old boxes must not carry over.
+      setRedactions([]);
+      setSelectedId(null);
       setStage("redact");
     } finally {
       setBusy(false);
@@ -84,10 +87,10 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
   };
 
   const finish = async () => {
-    if (!croppedCanvas.current) return;
+    if (!croppedCanvas) return;
     setBusy(true);
     try {
-      const baked = applyRedactions(croppedCanvas.current, redactions);
+      const baked = applyRedactions(croppedCanvas, redactions);
       const processed = await canvasToCompressedFile(baked, file.name);
       onComplete(processed);
     } finally {
@@ -115,9 +118,9 @@ export function ImageEditor({ file, onCancel, onComplete }: ImageEditorProps) {
                 showGrid={false}
               />
             )
-          : croppedUrl && (
+          : croppedCanvas && (
               <RedactionEditor
-                src={croppedUrl}
+                source={croppedCanvas}
                 redactions={redactions}
                 onChange={setRedactions}
                 selectedId={selectedId}
