@@ -150,7 +150,7 @@ try {
     });
     await page.goto(base);
     await page
-      .getByText("Loading archive count…")
+      .getByText("Loading archive count", { exact: true })
       .waitFor({ timeout: 5000 })
       .catch(async (error) => {
         console.error(await page.locator("body").innerText());
