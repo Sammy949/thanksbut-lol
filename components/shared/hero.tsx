@@ -4,6 +4,7 @@ import { Archive as ArchiveIcon } from "lucide-react";
 
 import { formatCount } from "@/lib/format";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { StampMark } from "@/components/archive/stamp-mark";
 import { MaskingTape } from "@/components/archive/decorations";
 import { useSubmissionTrigger } from "@/components/upload/submission-context";
@@ -11,6 +12,7 @@ import { useSubmissionTrigger } from "@/components/upload/submission-context";
 /** Garamond hero with scattered ink stamps and a taped-up archive count. */
 export function Hero({ count, sample = false }: { count?: number; sample?: boolean }) {
   const trigger = useSubmissionTrigger();
+  const loading = !sample && count === undefined;
 
   return (
     <section className="relative mx-auto flex max-w-[1120px] flex-col items-center px-5 py-12 text-center md:px-16 md:py-24">
@@ -43,13 +45,25 @@ export function Hero({ count, sample = false }: { count?: number; sample?: boole
         <MaskingTape className="top-[-12px] left-1/2 z-20 h-6 w-24 -translate-x-1/2 -rotate-2" />
         <div className="paper-card text-on-surface flex rotate-1 items-center gap-3 px-6 py-4">
           <ArchiveIcon className="text-primary size-5" />
-          <span className="text-body-md font-mono font-bold">
-            {sample
-              ? "Sample archive"
-              : count === undefined
-                ? "Loading archive count…"
-                : `${formatCount(count)} rejections archived`}
-          </span>
+          <div
+            role="status"
+            aria-busy={loading}
+            className="text-body-md font-mono font-bold"
+          >
+            {sample ? (
+              "Sample archive"
+            ) : loading ? (
+              <>
+                <span className="sr-only">Loading archive count</span>
+                <Skeleton
+                  aria-hidden="true"
+                  className="bg-on-surface/15 h-6 w-[22ch] max-w-[calc(100vw-7.5rem)] motion-reduce:animate-none"
+                />
+              </>
+            ) : (
+              `${formatCount(count!)} rejections archived`
+            )}
+          </div>
         </div>
       </div>
 
