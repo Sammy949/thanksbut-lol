@@ -115,9 +115,9 @@ function LoginGate({ onAuthed }: { onAuthed: () => void }) {
 }
 
 function Dashboard({ onSignOut }: { onSignOut: () => void }) {
-  const [cleanup, setCleanup] = React.useState<{ count: number; more: boolean } | null>(
-    null,
-  );
+  const [cleanup, setCleanup] = React.useState<
+    { count: number; more: boolean } | null | undefined
+  >(undefined);
   const [items, setItems] = React.useState<OpenReportItem[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [pending, setPending] = React.useState<Record<string, "remove" | "dismiss">>(
@@ -329,7 +329,11 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
         </div>
       </div>
 
-      {cleanup === null ? (
+      {cleanup === undefined ? (
+        <p role="status" className="text-secondary font-mono text-xs">
+          Checking screenshot cleanup status…
+        </p>
+      ) : cleanup === null ? (
         <p className="text-secondary font-mono text-xs">
           Screenshot cleanup status is unavailable. Refresh to check again.
         </p>
@@ -351,8 +355,12 @@ function Dashboard({ onSignOut }: { onSignOut: () => void }) {
 
       {items !== null && items.length === 0 && (
         <div className="paper-card -rotate-1 p-10 text-center">
-          <p className="text-headline-sm text-on-surface font-display">All clear.</p>
-          <p className="text-secondary mt-2 font-mono text-sm">No open reports.</p>
+          <p className="text-headline-sm text-on-surface font-display">
+            No open reports.
+          </p>
+          <p className="text-secondary mt-2 font-mono text-sm">
+            Refresh to check for new reports.
+          </p>
           <Button asChild variant="ghost" size="sm" className="mt-4">
             <Link href="/">
               <ArrowLeft className="size-4" /> Back to the wall
