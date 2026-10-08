@@ -127,7 +127,7 @@ const server = createServer((req, res) => {
   } else {
     res.setHeader("content-type", "text/html; charset=utf-8");
     res.end(
-      '<meta charset="utf-8"><link rel="stylesheet" href="/style.css"><div id="root"></div><script src="/bundle.js"></script>',
+      '<html class="h-full overflow-x-clip"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><link rel="stylesheet" href="/style.css"><body class="min-h-full overflow-x-clip"><div id="root"></div><script src="/bundle.js"></script></body></html>',
     );
   }
 });
@@ -142,7 +142,7 @@ try {
     { width: 1280, height: 900 },
     { width: 390, height: 844 },
   ]) {
-    const page = await browser.newPage({ viewport });
+    const page = await browser.newPage({ viewport, hasTouch: viewport.width < 600 });
     const errors = [];
     page.on("pageerror", (error) => {
       errors.push(error.message);
@@ -270,6 +270,81 @@ try {
     await share.focus();
     await page.keyboard.press("Enter");
     assert.equal(await prompted, `${base}/?a=test-post`);
+    // Reproduce the real document-root scroller, not just body scroll locking.
+    const letter = page.getByRole("dialog");
+    await letter.evaluate((element) => {
+      document.body.style.minHeight = "5000px";
+      window.scrollTo(0, 300);
+      const longContent = document.createElement("div");
+      longContent.style.height = "2000px";
+      longContent.dataset.scrollFixture = "true";
+      element.append(longContent);
+      element.scrollTop = 0;
+    });
+    const archivePosition = await page.evaluate(() => window.scrollY);
+    assert.equal(archivePosition, 300);
+    assert.equal(
+      await page.evaluate(() => getComputedStyle(document.documentElement).overflowY),
+      "hidden",
+    );
+    assert.equal(
+      await letter.evaluate((element) => getComputedStyle(element).overscrollBehaviorY),
+      "contain",
+    );
+    const letterBounds = await letter.boundingBox();
+    await page.mouse.move(
+      letterBounds.x + letterBounds.width / 2,
+      letterBounds.y + letterBounds.height / 2,
+    );
+    await page.mouse.wheel(0, 300);
+    await page.waitForFunction(
+      () => document.querySelector('[role="dialog"]').scrollTop > 0,
+    );
+    assert.equal(await page.evaluate(() => window.scrollY), archivePosition);
+    if (viewport.width < 600) {
+      const touch = await page.context().newCDPSession(page);
+      const swipe = async (x, from, to) => {
+        await touch.send("Input.dispatchTouchEvent", {
+          type: "touchStart",
+          touchPoints: [{ x, y: from }],
+        });
+        for (let step = 1; step <= 4; step++) {
+          await touch.send("Input.dispatchTouchEvent", {
+            type: "touchMove",
+            touchPoints: [{ x, y: from + ((to - from) * step) / 4 }],
+          });
+          await page.waitForTimeout(20);
+        }
+        await touch.send("Input.dispatchTouchEvent", {
+          type: "touchEnd",
+          touchPoints: [],
+        });
+      };
+      await letter.evaluate((element) => {
+        element.scrollTop = 0;
+      });
+      const middle = letterBounds.y + letterBounds.height / 2;
+      await swipe(letterBounds.x + letterBounds.width / 2, middle + 80, middle - 80);
+      await page.waitForFunction(
+        () => document.querySelector('[role="dialog"]').scrollTop > 0,
+      );
+      assert.equal(await page.evaluate(() => window.scrollY), archivePosition);
+      await swipe(4, viewport.height - 40, viewport.height - 240);
+      assert.equal(await page.evaluate(() => window.scrollY), archivePosition);
+      await touch.detach();
+    }
+    await letter.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+    });
+    await letter.focus();
+    await page.keyboard.press("PageDown");
+    await page.mouse.move(4, viewport.height - 10);
+    await page.mouse.wheel(0, 500);
+    await page.waitForTimeout(200);
+    assert.equal(await page.evaluate(() => window.scrollY), archivePosition);
+    await letter.evaluate((element) => {
+      element.querySelector("[data-scroll-fixture]")?.remove();
+    });
     await page.evaluate(() => (window.reactionFail = true));
     await page
       .getByRole("dialog")
@@ -300,6 +375,14 @@ try {
       .getByRole("button", { name: "Report", exact: true })
       .click();
     await page.getByLabel("Contains personal information", { exact: true }).click();
+    await page.waitForFunction(
+      () => document.body.getAttribute("data-scroll-locked") === "1",
+    );
+    assert.equal(
+      await page.evaluate(() => getComputedStyle(document.documentElement).overflowY),
+      "hidden",
+    );
+    assert.equal(await page.evaluate(() => window.scrollY), archivePosition);
     await page.evaluate(() => (window.reportFail = true));
     await page.getByRole("button", { name: "Send report" }).click();
     await page
@@ -314,6 +397,45 @@ try {
     await page.evaluate(() => (window.reportFail = false));
     await page.getByRole("button", { name: "Send report" }).click();
     await page.getByText("Report received", { exact: true }).waitFor();
+    await page.waitForFunction(() => !document.body.hasAttribute("data-scroll-locked"));
+    assert.equal(await page.evaluate(() => window.scrollY), archivePosition);
+    assert.notEqual(
+      await page.evaluate(() => getComputedStyle(document.documentElement).overflowY),
+      "hidden",
+    );
+    await page.mouse.move(4, viewport.height - 10);
+    await page.mouse.wheel(0, 300);
+    await page.waitForFunction((before) => window.scrollY > before, archivePosition);
+    await page
+      .getByRole("button", { name: "Open rejection", exact: true })
+      .first()
+      .click();
+    const browsingPosition = await page.evaluate(() => window.scrollY);
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Next rejection" })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByText("Second rejection", { exact: true })
+      .waitFor();
+    assert.equal(await page.evaluate(() => window.scrollY), browsingPosition);
+    assert.equal(
+      await page.evaluate(() => getComputedStyle(document.documentElement).overflowY),
+      "hidden",
+    );
+    await page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Previous rejection" })
+      .click();
+    await page
+      .getByRole("dialog")
+      .getByText("First rejection", { exact: true })
+      .waitFor();
+    assert.equal(await page.evaluate(() => window.scrollY), browsingPosition);
+    await page.keyboard.press("Escape");
+    await page.waitForFunction(() => !document.body.hasAttribute("data-scroll-locked"));
+    assert.equal(await page.evaluate(() => window.scrollY), browsingPosition);
     await page.goto(base);
     await page.getByRole("button", { name: "Open test submission" }).click();
     const fileInput = page.getByRole("dialog").locator('input[type="file"]');
@@ -395,7 +517,7 @@ try {
     assert.deepEqual(errors, []);
     await page.close();
     console.log(
-      `PASS ${viewport.width}px: validation, publication/retry, private-link fallback, navigation, filtered empty, browsing, reactions, reporting, admin, deletion, errors`,
+      `PASS ${viewport.width}px: validation, publication/retry, private-link fallback, navigation, filtered empty, browsing, reactions, reporting, admin, deletion, errors, dialog scroll lock/restoration${viewport.width < 600 ? ", touch scrolling" : ""}`,
     );
   }
   console.log("Screenshots: " + output);
