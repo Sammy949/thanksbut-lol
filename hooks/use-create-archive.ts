@@ -4,7 +4,7 @@ import { useMutation } from "convex/react";
 
 import { api } from "@/lib/convex-api";
 import { useUploadThing } from "@/lib/uploadthing";
-import { getImageDimensions, generateBlurDataUrl } from "@/lib/image";
+import { prepareArchiveImage } from "@/lib/image";
 import type { ArchiveImage } from "@/types/archive";
 
 /**
@@ -16,9 +16,8 @@ export function useArchiveSubmission() {
   const { startUpload } = useUploadThing("archiveImage");
 
   const uploadImage = async (file: File): Promise<ArchiveImage> => {
-    const [dims, blurDataUrl, uploaded] = await Promise.all([
-      getImageDimensions(file).catch(() => undefined),
-      generateBlurDataUrl(file).catch(() => null),
+    const [metadata, uploaded] = await Promise.all([
+      prepareArchiveImage(file).catch(() => ({})),
       startUpload([file]),
     ]);
 
@@ -38,9 +37,7 @@ export function useArchiveSubmission() {
       name: result.name,
       size: result.size,
       type: result.type,
-      ...(dims?.width ? { width: dims.width } : {}),
-      ...(dims?.height ? { height: dims.height } : {}),
-      ...(blurDataUrl ? { blurDataUrl } : {}),
+      ...metadata,
     };
   };
 
