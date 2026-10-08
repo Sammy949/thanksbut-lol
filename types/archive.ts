@@ -30,6 +30,11 @@ export interface Archive {
   category: ArchiveCategory;
   /** Uploaded rejection screenshot — the hero of the card when present. */
   image?: string;
+  /** Dimensions reserve space before the screenshot arrives. */
+  imageWidth?: number;
+  imageHeight?: number;
+  /** Tiny preview of the final published screenshot, not privacy redaction. */
+  blurDataUrl?: string;
   /** Raw rejection text — the fallback hero when there's no screenshot. */
   text?: string;
   /** Optional company / organisation name (the card heading). */

@@ -77,6 +77,9 @@ test("redaction queues the original, claims the replacement, and refuses removed
     ...image,
     key: "test-redacted",
     url: "https://example.com/redacted.jpg",
+    width: 400,
+    height: 800,
+    blurDataUrl: "data:image/webp;base64,UklGRg==",
   };
   await t.mutation(api.cleanupJobs.trackUpload, {
     key: replacement.key,
@@ -89,6 +92,19 @@ test("redaction queues the original, claims the replacement, and refuses removed
   });
   assert.equal(result.replaced, true);
   assert.equal(result.oldImageKey, image.key);
+  assert.deepEqual(
+    (await t.query(api.archives.getById, { id: post.id }))?.image,
+    replacement,
+    "Replacement dimensions and preview must replace the original metadata",
+  );
+  await assert.rejects(
+    t.mutation(api.archives.moderateReplaceImage, {
+      archiveId: post.id,
+      image: { ...replacement, blurDataUrl: "https://example.com/preview.png" },
+      secret: adminSecret,
+    }),
+    /Invalid image preview/,
+  );
   const jobs = await t.run((ctx) => ctx.db.query("fileCleanup").collect());
   assert.deepEqual(
     jobs.map((j) => j.key),

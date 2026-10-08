@@ -13,6 +13,7 @@ leave a 🥲, and carry on.
 - Live paginated wall, category filters, artifact inspection, and share links.
 - Anonymous screenshot or text submissions with optional company, caption, and name.
 - Browser-side image cropping, redaction, and compression before upload.
+- Progressive screenshot previews, reserved image proportions, and image retry states.
 - One reaction per anonymous session and a reporting flow.
 - Private management links for self-service deletion, without accounts.
 - Owner moderation: inspect reports, dismiss them, remove posts, or redact images.
@@ -87,6 +88,21 @@ touch input, preview/export alignment, and crop changes. Playwright must be
 available to Node, or selected through `PLAYWRIGHT_MODULE`; `CHROME_BIN` can
 select an installed Chromium. This optional browser check runs locally and saves
 its screenshots in a temporary directory, without contacting backend services.
+
+For progressive-image changes, run `node scripts/verify-progressive-images.mjs`
+after building, with the same Playwright/Chromium options. It checks delayed and
+cached loads, desktop/mobile crops, portrait lightboxes, image retry, replacement
+races, lazy loading, reduced motion, no-JavaScript display, and final-file preview
+generation. Upload and publication services are stubbed in this browser check.
+
+`lib/image.ts` prepares dimensions and a tiny inline raster preview from the final
+cropped/redacted file while the main upload runs. Preparation stops waiting after
+five seconds; missing preview metadata does not block publishing. Cards and the
+lightbox use stored metadata, including metadata already present on older posts.
+Posts without it use a neutral loading surface and learn proportions when loaded.
+Admin replacements regenerate the preview from the replacement file. No separate
+preview file is uploaded, and no backfill is performed. Loading blur is not privacy
+redaction and does not reduce the full screenshot's download size.
 
 ## Code map
 

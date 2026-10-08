@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isBlurDataUrl } from "./image-metadata";
 
 /**
  * Shared validation, safe to import from BOTH the browser and Convex.
@@ -35,7 +36,7 @@ export const uploadPayloadSchema = z.object({
     }),
   width: z.number().int().positive().optional(),
   height: z.number().int().positive().optional(),
-  blurDataUrl: z.string().optional(),
+  blurDataUrl: z.string().refine(isBlurDataUrl, "Invalid image preview.").optional(),
 });
 
 /**

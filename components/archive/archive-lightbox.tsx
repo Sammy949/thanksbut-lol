@@ -10,6 +10,7 @@ import type { Archive } from "@/types/archive";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { ReactionButton } from "./reaction-button";
+import { ProgressiveImage } from "./progressive-image";
 
 interface ArchiveLightboxProps {
   archive: Archive | null;
@@ -63,15 +64,14 @@ export function ArchiveLightbox({
             </div>
 
             {archive.image && (
-              // Inspect view shows the artifact in full — natural proportions,
-              // capped at 70vh and letterboxed — unlike the cropped board card.
               <div className="bg-surface-variant border-outline-variant flex max-h-[70vh] w-full items-center justify-center overflow-hidden border">
-                {/* eslint-disable-next-line @next/next/no-img-element -- natural-ratio
-                    artifact of unknown dimensions; next/image needs fixed w/h or fill. */}
-                <img
+                <ProgressiveImage
                   src={archive.image}
                   alt={`Rejection from ${archive.company ?? "an organisation"}`}
-                  className="max-h-[70vh] w-auto max-w-full object-contain"
+                  width={archive.imageWidth}
+                  height={archive.imageHeight}
+                  blurDataUrl={archive.blurDataUrl}
+                  variant="inspect"
                 />
               </div>
             )}

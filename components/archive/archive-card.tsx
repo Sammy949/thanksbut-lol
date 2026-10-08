@@ -12,6 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { StampMark } from "./stamp-mark";
 import { MaskingTape, PushPin, PaperClip } from "./decorations";
 import { ReactionButton } from "./reaction-button";
+import { ProgressiveImage } from "./progressive-image";
 
 export type CardDecoration = "pin" | "tape" | "clip" | "none";
 
@@ -74,40 +75,38 @@ export function ArchiveCard({
         </Badge>
       </div>
 
-      {/* Body — screenshot or typed letter (click to inspect) */}
-      <button
-        type="button"
-        onClick={() => onOpen(archive)}
-        aria-label="Open rejection"
-        className="block w-full text-left"
-      >
-        {archive.image ? (
-          // Single column (mobile): uniform 4:3 crop keeps the stack tidy, since
-          // a one-wide column can't read as masonry. sm+ (the 2–3 column wall):
-          // honor each screenshot's real proportions — a square or tall artifact
-          // keeps its shape and simply flows within its own column, so it can
-          // never resize a neighbour.
-          <div className="bg-surface-variant border-outline-variant relative w-full overflow-hidden border">
-            {/* eslint-disable-next-line @next/next/no-img-element -- per-upload
-                natural ratio; next/image needs fixed dims or fill, and we store
-                neither per artifact. */}
-            <img
-              src={archive.image}
-              alt={`Rejection from ${archive.company ?? "an organisation"}`}
-              loading="lazy"
-              decoding="async"
-              className="block aspect-[4/3] w-full object-cover sm:aspect-auto sm:h-auto"
-            />
-            <div className="bg-on-surface/25 absolute inset-0 flex items-center justify-center opacity-0 backdrop-blur-[1px] transition-opacity group-hover:opacity-100">
+      {/* Mobile cards keep their 4:3 crop; desktop keeps natural proportions. */}
+      {archive.image ? (
+        <div className="border-outline-variant border">
+          <ProgressiveImage
+            src={archive.image}
+            alt={`Rejection from ${archive.company ?? "an organisation"}`}
+            width={archive.imageWidth}
+            height={archive.imageHeight}
+            blurDataUrl={archive.blurDataUrl}
+          >
+            <button
+              type="button"
+              onClick={() => onOpen(archive)}
+              aria-label="Open rejection"
+              className="bg-on-surface/25 focus-visible:ring-ring absolute inset-0 flex items-center justify-center opacity-0 backdrop-blur-[1px] transition-opacity group-hover:opacity-100 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-inset"
+            >
               <Eye className="text-surface size-7" />
-            </div>
-          </div>
-        ) : (
+            </button>
+          </ProgressiveImage>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => onOpen(archive)}
+          aria-label="Open rejection"
+          className="block w-full text-left"
+        >
           <p className="text-on-surface-variant text-code-snippet line-clamp-5 font-mono leading-relaxed">
             {archive.text}
           </p>
-        )}
-      </button>
+        </button>
+      )}
 
       {/* Margin note + reaction */}
       <div className="border-outline-variant mt-4 flex items-center justify-between gap-2 border-t pt-3">

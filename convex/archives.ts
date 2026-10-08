@@ -9,6 +9,7 @@ import { serializeArchive } from "./lib/serialize";
 import { resolveIdentity, assertServerSecret, assertAdminSecret } from "./lib/identity";
 import { archiveInputSchema, type ArchiveInputValues } from "../lib/validation";
 import { enqueueCleanup, claimUpload } from "./cleanupJobs";
+import { isBlurDataUrl } from "../lib/image-metadata";
 
 /**
  * Has this caller reacted to the given archive? Keyed on the server-issued
@@ -238,6 +239,9 @@ export const moderateReplaceImage = mutation({
   },
   handler: async (ctx, { archiveId, image, secret }) => {
     assertAdminSecret(secret);
+    if (image.blurDataUrl !== undefined && !isBlurDataUrl(image.blurDataUrl)) {
+      throw new ConvexError("Invalid image preview.");
+    }
 
     const doc = await ctx.db.get(archiveId);
     if (!doc) return { replaced: false as const, oldImageKey: null };
