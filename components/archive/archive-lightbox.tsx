@@ -2,7 +2,7 @@
 
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Flag } from "lucide-react";
+import { Flag, Share2 } from "lucide-react";
 
 import { formatRelativeTime } from "@/lib/format";
 import { CATEGORY_LABELS } from "@/constants/categories";
@@ -88,15 +88,34 @@ export function ArchiveLightbox({
               </p>
             )}
 
-            <div className="border-outline-variant flex items-center justify-between border-t pt-4">
+            <div className="border-outline-variant flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-t pt-4">
               <span
-                className="text-secondary text-code-snippet font-mono"
+                className="text-secondary text-code-snippet max-w-full min-w-0 font-mono break-words"
                 suppressHydrationWarning
               >
                 {formatRelativeTime(archive.createdAt)}
                 {archive.displayName ? ` · ${archive.displayName}` : ""}
               </span>
-              <div className="flex flex-wrap items-center justify-end gap-3">
+              <div className="flex shrink-0 items-center gap-3">
+                {!previewMode && (
+                  <button
+                    type="button"
+                    aria-label="Share rejection"
+                    onClick={async () => {
+                      const url = `${window.location.origin}/?a=${archive.id}`;
+                      try {
+                        await navigator.clipboard.writeText(url);
+                        toast.success("Public link copied");
+                      } catch {
+                        window.prompt("Copy this public rejection link", url);
+                      }
+                    }}
+                    className="text-secondary hover:text-primary flex items-center gap-1.5 transition-colors"
+                  >
+                    <Share2 className="size-4" />
+                    <span className="text-label-caps font-mono uppercase">Share</span>
+                  </button>
+                )}
                 <button
                   type="button"
                   disabled={previewMode}
@@ -118,23 +137,6 @@ export function ArchiveLightbox({
                 )}
               </div>
             </div>
-            {!previewMode && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={async () => {
-                  const url = `${window.location.origin}/?a=${archive.id}`;
-                  try {
-                    await navigator.clipboard.writeText(url);
-                    toast.success("Public link copied");
-                  } catch {
-                    window.prompt("Copy this public rejection link", url);
-                  }
-                }}
-              >
-                Share rejection
-              </Button>
-            )}
             {(onPrevious || onNext) && (
               <nav
                 aria-label="Browse rejections"

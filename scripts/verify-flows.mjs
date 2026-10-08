@@ -225,9 +225,51 @@ try {
       .first()
       .click();
     await page.getByRole("button", { name: "Next rejection" }).click();
-    await page.getByText("Second rejection", { exact: true }).last().waitFor();
+    await page
+      .getByRole("dialog")
+      .getByText("Second rejection", { exact: true })
+      .waitFor();
+    // Next is disabled at the last entry; put keyboard focus back in the dialog.
+    await page.getByRole("dialog").focus();
     await page.keyboard.press("ArrowLeft");
-    await page.getByText("First rejection", { exact: true }).last().waitFor();
+    await page
+      .getByRole("dialog")
+      .getByText("First rejection", { exact: true })
+      .waitFor();
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: {
+          writeText: async (url) => {
+            window.copiedPublicLink = url;
+          },
+        },
+      });
+    });
+    const share = page
+      .getByRole("dialog")
+      .getByRole("button", { name: "Share rejection", exact: true });
+    await share.click();
+    assert.equal(
+      await page.evaluate(() => window.copiedPublicLink),
+      `${base}/?a=test-post`,
+    );
+    await page.evaluate(() => {
+      Object.defineProperty(navigator, "clipboard", {
+        configurable: true,
+        value: { writeText: () => Promise.reject(Error("denied")) },
+      });
+    });
+    const prompted = new Promise((resolve) =>
+      page.once("dialog", async (prompt) => {
+        const value = prompt.defaultValue();
+        await prompt.dismiss();
+        resolve(value);
+      }),
+    );
+    await share.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await prompted, `${base}/?a=test-post`);
     await page.evaluate(() => (window.reactionFail = true));
     await page
       .getByRole("dialog")
