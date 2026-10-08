@@ -3,6 +3,14 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Radix locks body, but overflow-x: clip on html prevents that lock from
+   reaching the viewport. Follow its counted lock so overlapping dialogs keep
+   the document still until the last overlay has finished closing. */
+html:has(body[data-scroll-locked]) {
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
 /* ===========================================================================
  * thanksbut.lol — "The Rejection Archive" (archive-board redesign)
  * Light = warm paper scrapbook · Dark = "Late Night" warm charcoal.

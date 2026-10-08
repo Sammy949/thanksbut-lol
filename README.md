@@ -149,3 +149,6 @@ removal/replacement creates cleanup jobs for them when requested.
 check) exercises actual components with synthetic entries and stubbed services.
 It checks validation, submission states, clipboard fallback, reporting, reactions,
 moderation, deletion, browsing, and mobile scrolling without live service writes.
+Dialog checks verify document scroll locking, internal scrolling, keyboard and
+wheel input at scroll boundaries, mobile touch gestures, report handoff, and
+restored archive position.
